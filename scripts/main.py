@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 
 DATA_DIR = '../data/L16001-L17000/'
 OUT_DIR = '../output/image/'
-ismultiple = False
+ismultiple = True
 
 
 def detect_outer_circle(img):
@@ -21,6 +21,7 @@ def detect_outer_circle(img):
     outer_circle = cv2.HoughCircles(img_thresh, cv2.HOUGH_GRADIENT, dp=1, minDist=70,
                                     param1=140, param2=10, minRadius=440, maxRadius=460)
 
+    x, y = None, None
     if outer_circle is not None:
         x, y, r = np.around(outer_circle[0][0])
         img_white = img.copy()
@@ -29,7 +30,7 @@ def detect_outer_circle(img):
         # cv2.circle(img, (x, y), 10, (255, 0, 0), -1)  # draw center of circle
         img = np.where(img_white == 255, 255, img)
 
-    return img
+    return img, x, y
 
 
 def detect_blob(img, img_mask):
@@ -51,13 +52,12 @@ def main(filename, block_size=71, dir_path=None):
     axes[0, 0].imshow(img)
     axes[0, 0].set_title(filename)
 
-    img_mask = detect_outer_circle(img)
+    img_mask, center_x, center_y = detect_outer_circle(img)
     img_mask = cv2.adaptiveThreshold(img_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, block_size, 0)
+    if center_x:
+        cv2.circle(img_mask, (center_x, center_y), 80, 0, -1)
     axes[0, 1].imshow(img_mask)
     axes[0, 1].set_title('adaptiveThreshold\nblock_size:{}'.format(block_size))
-
-    # 平滑化処理
-    # img_mask = cv2.medianBlur(img_mask, ksize)
 
     # モルフォロジー処理
     kernel_erode = np.ones((7, 7), np.uint8)
@@ -94,11 +94,6 @@ if __name__ == "__main__":
         for i in tqdm(range(52)):
             filename = 'L16{}.tif'.format(450 + i)
             main(filename, dir_path=dir_path)
-
-            # parameter search
-            # for block_size in range(151, 301, 50):
-            #     for ksize in range(19, 35, 2):
-            #         main(filename, block_size, ksize, dir_path)
     else:
-        filename = 'L16494.tif'
+        filename = 'L16501.tif'
         main(filename)
