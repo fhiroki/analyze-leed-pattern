@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import Tk, Canvas, PanedWindow, Frame, Label, Button, Entry, Scrollbar
+from tkinter import Tk, Canvas, PanedWindow, Frame, Label, Entry
 from tkinter import filedialog, ttk
 
 import cv2
@@ -21,7 +21,7 @@ class Application(tk.Frame):
         pane.add(self.frame)
 
         # Main frame
-        Label(self.frame, text='theoritical d of base:').grid(row=0, column=0, padx=10, pady=10)
+        Label(self.frame, text='Theoritical d of Base:').grid(row=0, column=0, padx=10, pady=10)
         self.theoretical_d = Entry(self.frame, width=15)
         self.theoretical_d.grid(column=1, row=0)
         Label(self.frame, text='Å').grid(row=0, column=2)
@@ -32,10 +32,10 @@ class Application(tk.Frame):
         Label(self.fm_base, text='○ Images of Base').grid(row=0, column=0)
         Label(self.fm_base, text='Images').grid(row=1, column=0, pady=100)
         Label(self.fm_base, text='Base Voltage').grid(row=2, column=0, pady=10)
-        self.fm_base_img = Frame(self.fm_base, bd=2, relief='ridge', width=1000, height=200)
+        self.fm_base_img = Frame(self.fm_base, bd=2, relief='ridge')
         self.fm_base_img.grid(row=1, column=1, rowspan=2, sticky='W' + 'E' + 'N' + 'S', padx=35)
-        # ttk.Button(self.fm_base_img, text='select images',
-        #            command=self.select_file).grid(column=0, row=0, ipadx=100, ipady=100)
+        ttk.Button(self.fm_base_img, text='select images',
+                   command=self.select_file).grid(row=0, column=0, padx=500, pady=120)
 
         # Images of Molecules frame
         self.fm_molecules = Frame(pane, bd=2, relief='ridge', pady=20)
@@ -46,7 +46,8 @@ class Application(tk.Frame):
         self.fm_molecules_img = Frame(self.fm_molecules, bd=2, relief='ridge', width=1000, height=200)
         self.fm_molecules_img.grid(row=1, column=1,
                                    rowspan=2, sticky='W' + 'E' + 'N' + 'S')
-        # ttk.Button(self.fm_molecules, text='select images', command=self.select_file).grid(column=0, row=2)
+        ttk.Button(self.fm_molecules_img, text='select images',
+                   command=self.select_file).grid(row=0, column=0, padx=500, pady=120)
 
         self.fm_run = Frame(pane, bd=2, relief='ridge', pady=10)
         pane.add(self.fm_run)
