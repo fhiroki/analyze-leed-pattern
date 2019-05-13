@@ -20,20 +20,40 @@ class Application(tk.Frame):
         self.frame = Frame(pane, bd=2, relief='ridge')
         pane.add(self.frame)
 
-        Label(self.frame, text='theoritical d of base:').grid(column=0, row=0, padx=10, pady=10)
+        # Main frame
+        Label(self.frame, text='theoritical d of base:').grid(row=0, column=0, padx=10, pady=10)
         self.theoretical_d = Entry(self.frame, width=15)
         self.theoretical_d.grid(column=1, row=0)
-        Label(self.frame, text='Å').grid(column=2, row=0)
+        Label(self.frame, text='Å').grid(row=0, column=2)
 
-        self.fm_base = Frame(pane, bd=2, relief='ridge', pady=10)
+        # Images of Base frame
+        self.fm_base = Frame(pane, bd=2, relief='ridge', pady=20)
         pane.add(self.fm_base)
-        Label(self.fm_base, text='○ images of base').grid(column=0, row=1)
-        ttk.Button(self.fm_base, text='select images', command=self.select_file).grid(column=0, row=2)
+        Label(self.fm_base, text='○ Images of Base').grid(row=0, column=0)
+        Label(self.fm_base, text='Images').grid(row=1, column=0, pady=100)
+        Label(self.fm_base, text='Base Voltage').grid(row=2, column=0, pady=10)
+        self.fm_base_img = Frame(self.fm_base, bd=2, relief='ridge', width=1000, height=200)
+        self.fm_base_img.grid(row=1, column=1, rowspan=2, sticky='W' + 'E' + 'N' + 'S', padx=35)
+        # ttk.Button(self.fm_base_img, text='select images',
+        #            command=self.select_file).grid(column=0, row=0, ipadx=100, ipady=100)
 
-        self.fm_molecules = Frame(pane, bd=2, relief='ridge', pady=10)
+        # Images of Molecules frame
+        self.fm_molecules = Frame(pane, bd=2, relief='ridge', pady=20)
         pane.add(self.fm_molecules)
-        Label(self.fm_molecules, text='○ images of molecules').grid(column=0, row=1)
-        ttk.Button(self.fm_molecules, text='select images', command=self.select_file).grid(column=0, row=2)
+        Label(self.fm_molecules, text='○ Images of Molecules').grid(row=0, column=0)
+        Label(self.fm_molecules, text='Images').grid(row=1, column=0, pady=100)
+        Label(self.fm_molecules, text='Base Voltage').grid(row=2, column=0, pady=10)
+        self.fm_molecules_img = Frame(self.fm_molecules, bd=2, relief='ridge', width=1000, height=200)
+        self.fm_molecules_img.grid(row=1, column=1,
+                                   rowspan=2, sticky='W' + 'E' + 'N' + 'S')
+        # ttk.Button(self.fm_molecules, text='select images', command=self.select_file).grid(column=0, row=2)
+
+        self.fm_run = Frame(pane, bd=2, relief='ridge', pady=10)
+        pane.add(self.fm_run)
+        ttk.Button(self.fm_run, text='RUN', command=self.run).pack()
+
+    def run(self):
+        pass
 
     def get_d(self):
         print(self.theoretical_d.get())
@@ -64,7 +84,7 @@ class Application(tk.Frame):
 def main():
     root = Tk()
     app = Application(master=root)
-    app.master.geometry('700x800')
+    app.master.geometry('1500x1000')
     app.master.title('Analyze LEED pattern')
     app.mainloop()
 
