@@ -17,11 +17,13 @@ class Application(tk.Frame):
         self.base_images = []
         self.base_img_canvas = []
         self.base_voltages = []
+        self.base_idx = 0
 
         self.mole_image_paths = []
         self.mole_images = []
         self.mole_img_canvas = []
         self.mole_voltages = []
+        self.mole_idx = 0
 
     def create_widgets(self):
         pane = PanedWindow(self.master, orient='vertical')
@@ -43,12 +45,19 @@ class Application(tk.Frame):
         Label(self.fm_base, text='Images').grid(row=1, column=0, pady=100)
         Label(self.fm_base, text='Base Voltage[V]').grid(row=2, column=0, pady=20)
 
-        self.fm_base_canvas = Canvas(self.fm_base, bd=2, relief='ridge')
-        self.fm_base_canvas.grid(row=1, column=1, rowspan=2, sticky='W' + 'E' + 'N' + 'S', padx=35)
+        self.fm_base_canvas = Canvas(self.fm_base, width=1000)
+        self.fm_base_canvas.grid(row=1, column=1, rowspan=2, sticky='news', padx=35)
 
-        self.fm_base_btn = ttk.Button(self.fm_base_canvas, text='select images')
+        self.fm_base_bar = Scrollbar(self.fm_base, orient='horizontal', command=self.fm_base_canvas.xview)
+        self.fm_base_bar.grid(row=3, column=1, sticky='ew', padx=35)
+        self.fm_base_canvas.config(xscrollcommand=self.fm_base_bar.set)
+
+        self.fm_base_canvas_frame = Frame(self.fm_base_canvas)
+        self.fm_base_canvas.create_window((0, 20), window=self.fm_base_canvas_frame, anchor='nw')
+
+        self.fm_base_btn = ttk.Button(self.fm_base, text='select images')
         self.fm_base_btn.config(command=lambda: self.select_file(isBase=True))
-        self.fm_base_btn.grid(row=0, column=0, padx=500, pady=120)
+        self.fm_base_btn.grid(row=0, column=1, sticky='w', padx=30)
 
         # Images of Molecules frame
         self.fm_mole = Frame(pane, bd=2, relief='ridge', pady=20)
@@ -57,12 +66,19 @@ class Application(tk.Frame):
         Label(self.fm_mole, text='Images').grid(row=1, column=0, pady=100)
         Label(self.fm_mole, text='Base Voltage[V]').grid(row=2, column=0, pady=20)
 
-        self.fm_mole_canvas = Canvas(self.fm_mole, bd=2, relief='ridge')
-        self.fm_mole_canvas.grid(row=1, column=1, rowspan=2, sticky='W' + 'E' + 'N' + 'S')
+        self.fm_mole_canvas = Canvas(self.fm_mole, width=1000)
+        self.fm_mole_canvas.grid(row=1, column=1, rowspan=2, sticky='news')
 
-        self.fm_mole_btn = ttk.Button(self.fm_mole_canvas, text='select images')
+        self.fm_mole_bar = Scrollbar(self.fm_mole, orient='horizontal', command=self.fm_mole_canvas.xview)
+        self.fm_mole_bar.grid(row=3, column=1, sticky='ew')
+        self.fm_mole_canvas.config(xscrollcommand=self.fm_mole_bar.set)
+
+        self.fm_mole_canvas_frame = Frame(self.fm_mole_canvas)
+        self.fm_mole_canvas.create_window((0, 20), window=self.fm_mole_canvas_frame, anchor='nw')
+
+        self.fm_mole_btn = ttk.Button(self.fm_mole, text='select images')
         self.fm_mole_btn.config(command=lambda: self.select_file(isBase=False))
-        self.fm_mole_btn.grid(row=0, column=0, padx=500, pady=120)
+        self.fm_mole_btn.grid(row=0, column=1, sticky='w', padx=30)
 
         # Run blob detection
         self.fm_run = Frame(pane, bd=2, relief='ridge', pady=10)
@@ -86,42 +102,39 @@ class Application(tk.Frame):
         files = filedialog.askopenfilenames(initialdir=initialdir)
 
         if isBase:
-            for i in range(len(files)):
-                self.base_img_canvas.append(Canvas(self.fm_base_canvas))
-                self.base_voltages.append(Entry(self.fm_base_canvas))
+            for idx, filename in enumerate(files):
+                i = self.base_idx
+                self.base_img_canvas.append(Canvas(self.fm_base_canvas_frame))
+                self.base_voltages.append(Entry(self.fm_base_canvas_frame))
 
-            for i, filename in enumerate(files):
                 self.base_image_paths.append(filename)
                 self.base_images.append(self.read_image(filename))
                 self.base_img_canvas[i].create_image(self.base_images[i]['width'] / 2,
                                                      self.base_images[i]['height'] / 2,
                                                      image=self.base_images[i]['img'])
-                self.base_img_canvas[i].grid(row=0, column=i, padx=15, pady=10)
-                self.base_voltages[i].grid(row=1, column=i, pady=20)
+                self.base_img_canvas[i].grid(row=0, column=self.base_idx)
+                self.base_voltages[i].grid(row=1, column=self.base_idx, pady=(20, 0))
+                self.base_idx += 1
 
-            self.fm_base_btn.grid_forget()
+            self.fm_base_canvas_frame.update_idletasks()
+            self.fm_base_canvas.config(scrollregion=self.fm_base_canvas.bbox('all'))
         else:
-            for i in range(len(files)):
-                self.mole_img_canvas.append(Canvas(self.fm_mole_canvas))
-                self.mole_voltages.append(Entry(self.fm_mole_canvas))
+            for idx, filename in enumerate(files):
+                i = self.mole_idx
+                self.mole_img_canvas.append(Canvas(self.fm_mole_canvas_frame))
+                self.mole_voltages.append(Entry(self.fm_mole_canvas_frame))
 
-            for i, filename in enumerate(files):
                 self.mole_image_paths.append(filename)
                 self.mole_images.append(self.read_image(filename))
                 self.mole_img_canvas[i].create_image(self.mole_images[i]['width'] / 2,
                                                      self.mole_images[i]['height'] / 2,
                                                      image=self.mole_images[i]['img'])
-                self.mole_img_canvas[i].grid(row=0, column=i, padx=15, pady=10)
-                self.mole_voltages[i].grid(row=1, column=i, pady=20)
+                self.mole_img_canvas[i].grid(row=0, column=self.mole_idx)
+                self.mole_voltages[i].grid(row=1, column=self.mole_idx, pady=(20, 0))
+                self.mole_idx += 1
 
-            self.fm_mole_btn.grid_forget()
-
-        # TODO - set Scrollbar
-        # self.fm_base_canvas.config(scrollregion=self.fm_base_canvas.bbox('all'))
-        # hscrollbar = Scrollbar(self.fm_base, orient='horizontal')
-        # hscrollbar.config(command=self.fm_base_canvas.xview)
-        # self.fm_base_canvas.config(xscrollcommand=hscrollbar.set)
-        # hscrollbar.grid(row=2, column=1, sticky='E' + 'W')
+            self.fm_mole_canvas_frame.update_idletasks()
+            self.fm_mole_canvas.config(scrollregion=self.fm_mole_canvas.bbox('all'))
 
     def read_image(self, path):
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
@@ -137,7 +150,6 @@ class Application(tk.Frame):
 def main():
     root = Tk()
     app = Application(master=root)
-    app.master.geometry('1500x1000')
     app.master.title('Analyze LEED pattern')
     app.mainloop()
 
