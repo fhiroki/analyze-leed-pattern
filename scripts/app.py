@@ -6,6 +6,8 @@ from tkinter import filedialog, ttk
 import cv2
 from PIL import Image, ImageTk
 
+import detector
+
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -45,7 +47,7 @@ class Application(tk.Frame):
         Label(self.fm_base, text='Images').grid(row=1, column=0, pady=100)
         Label(self.fm_base, text='Base Voltage[V]').grid(row=2, column=0, pady=20)
 
-        self.fm_base_canvas = Canvas(self.fm_base, width=1000)
+        self.fm_base_canvas = Canvas(self.fm_base, width=1000, highlightthickness=0)
         self.fm_base_canvas.grid(row=1, column=1, rowspan=2, sticky='news', padx=35)
 
         self.fm_base_bar = Scrollbar(self.fm_base, orient='horizontal', command=self.fm_base_canvas.xview)
@@ -66,7 +68,7 @@ class Application(tk.Frame):
         Label(self.fm_mole, text='Images').grid(row=1, column=0, pady=100)
         Label(self.fm_mole, text='Base Voltage[V]').grid(row=2, column=0, pady=20)
 
-        self.fm_mole_canvas = Canvas(self.fm_mole, width=1000)
+        self.fm_mole_canvas = Canvas(self.fm_mole, width=1000, highlightthickness=0)
         self.fm_mole_canvas.grid(row=1, column=1, rowspan=2, sticky='news')
 
         self.fm_mole_bar = Scrollbar(self.fm_mole, orient='horizontal', command=self.fm_mole_canvas.xview)
@@ -86,15 +88,16 @@ class Application(tk.Frame):
         ttk.Button(self.fm_run, text='RUN', command=self.run).pack()
 
     def run(self):
-        print('Base')
-        print('image: {}'.format(self.base_image_paths))
-        print('voltages: {}\n'.format([base_voltage.get() for base_voltage in self.base_voltages]))
-        print('Molecules')
-        print('image: {}'.format(self.mole_image_paths))
-        print('voltages: {}'.format([mole_voltage.get() for mole_voltage in self.mole_voltages]))
-
-    def get_d(self):
-        print(self.theoretical_d.get())
+        base_voltages = [float(base_voltage.get().replace('\x10', '')) for base_voltage in self.base_voltages]
+        r = detector.detect_base_blob(self.theoretical_d.get(), self.base_image_paths, base_voltages)
+        print('r:', r)
+        # print('theoretical d: {}'.format(self.theoretical_d.get()))
+        # print('Base')
+        # print('image: {}'.format(self.base_image_paths))
+        # print('voltages: {}\n'.format([base_voltage.get() for base_voltage in self.base_voltages]))
+        # print('Molecules')
+        # print('image: {}'.format(self.mole_image_paths))
+        # print('voltages: {}'.format([mole_voltage.get() for mole_voltage in self.mole_voltages]))
 
     def select_file(self, isBase):
         # initialdir = os.path.abspath(os.path.dirname("__file__"))
