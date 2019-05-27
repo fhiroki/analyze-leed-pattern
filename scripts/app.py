@@ -89,7 +89,8 @@ class Application(tk.Frame):
 
     def run(self):
         base_voltages = [float(base_voltage.get().replace('\x10', '')) for base_voltage in self.base_voltages]
-        r = detector.detect_base_blob(self.theoretical_d.get(), self.base_image_paths, base_voltages)
+        r = detector.detect_base_blob(float(self.theoretical_d.get().replace('\x10', '')),
+                                      self.base_image_paths, base_voltages)
         print('r:', r)
         # print('theoretical d: {}'.format(self.theoretical_d.get()))
         # print('Base')

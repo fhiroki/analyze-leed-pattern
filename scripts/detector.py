@@ -47,37 +47,46 @@ def detect_blob(img, img_mask):
     return cimg, circles
 
 
-def detect_base_blob(theoretical_d, image_paths, voltages):
-    x_list = []
-    sintheta_list = []
+def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False):
+    x_list = np.array(0)
+    sintheta_list = np.array(0)
     for i in range(len(image_paths)):
-        vector = detect(image_paths[i], theoretical_d)
-        x = cv2.magnitude(vector[:, 0], vector[:, 1])
-        sintheta = n / float(theoretical_d) * np.sqrt(150.4 / voltages[i])
+        if isfilename:
+            vector = detect(os.path.join(DATA_DIR, image_paths[i]), theoretical_d)
+        else:
+            vector = detect(image_paths[i], theoretical_d)
 
-        x_list.append(np.mean(x))
-        sintheta_list.append(sintheta)
+        if vector is not None:
+            x = cv2.magnitude(vector[:, 0], vector[:, 1])
+            sintheta = n / theoretical_d * np.sqrt(150.4 / voltages[i])
+
+            x_list = np.append(x_list, np.mean(x))
+            sintheta_list = np.append(sintheta_list, sintheta)
 
     plt.scatter(sintheta_list, x_list)
-    plt.show()
+    plt.xlim([0, 0.6])
+    plt.ylim([0, 500])
 
-    x = sintheta_list / np.sqrt(1 - np.array(sintheta_list) ** 2)
-    r, _ = np.polyfit(x, x_list, 1)
+    x = sintheta_list / np.sqrt(1 - sintheta_list ** 2)
+    r, intercept = np.polyfit(x, x_list, 1)
+    plt.plot(x, np.poly1d([r, intercept])(x), label='r={}'.format(round(r, 2)))
+    plt.legend()
+    plt.show()
 
     return r
 
 
-def detect(filename, theoretical_d=0, dir_path=None, isplot=False):
-    img = cv2.imread(os.path.join(DATA_DIR, filename), cv2.IMREAD_GRAYSCALE)
+def detect(image_path, theoretical_d=0, dir_path=None, isplot=False):
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
     if isplot:
         fig, axes = plt.subplots(2, 2)
         axes[0, 0].imshow(img)
-        axes[0, 0].set_title(filename)
+        # axes[0, 0].set_title(filename)
 
     img_mask, center = detect_outer_circle(img)
     img_mask = cv2.adaptiveThreshold(img_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, BLOCK_SIZE, 0)
-    if center:
+    if center[0]:
         cv2.circle(img_mask, (center[0], center[1]), 80, 0, -1)
 
     if isplot:
@@ -94,13 +103,10 @@ def detect(filename, theoretical_d=0, dir_path=None, isplot=False):
         axes[1, 0].imshow(img_mask)
         axes[1, 0].set_title('morphology')
 
+    vector = None
     try:
         cimg, circles = detect_blob(img, img_mask)
-
         vector = center - circles[:, :2]
-        # E = 51.1
-        # r = 617.11
-        # d = np.sqrt(150.4 / E) * np.sqrt(r ** 2 + x ** 2) / x
 
         if isplot:
             axes[1, 1].imshow(cimg)
@@ -127,8 +133,8 @@ if __name__ == "__main__":
             filename = 'L16{}.tif'.format(450 + i)
             detect(filename, dir_path=dir_path)
     else:
+        # detect('/Users/hiroki/Develop/School/blob_detection/data/L16001-L17000/L16474.tif', isplot=True)
         detect_base_blob(2.504,
-                         ['/Users/hiroki/Develop/School/blob_detection/data/L16001-L17000/L16469.tif',
-                          '/Users/hiroki/Develop/School/blob_detection/data/L16001-L17000/L16470.tif',
-                          '/Users/hiroki/Develop/School/blob_detection/data/L16001-L17000/L16471.tif'],
-                         [80.6, 94.7, 109.2])
+                         ['L16469.tif', 'L16470.tif', 'L16471.tif', 'L16472.tif', 'L16473.tif', 'L16474.tif',
+                          'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif'],
+                         [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1, 179.2, 193.7, 215.3, 230.3], isfilename=True)
