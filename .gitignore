@@ -2,3 +2,4 @@ data/
 output/
 ref/
 .vscode
+__pychache__
