@@ -58,9 +58,30 @@ def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False):
 
         if vector is not None:
             x = cv2.magnitude(vector[:, 0], vector[:, 1])
-            sintheta = n / theoretical_d * np.sqrt(150.4 / voltages[i])
 
-            x_list = np.append(x_list, np.mean(x))
+            (freq, bins, _) = plt.hist(x, bins=100, range=(0, 500))
+
+            bin_freqs = []
+            for j in range(100):
+                if freq[j]:
+                    bin_freqs.append([bins[j], freq[j]])
+
+            cluster = []
+            prev_bin = 0
+            start = 0
+            for j in range(len(bin_freqs)):
+                current_bin = bin_freqs[j][0]
+                if current_bin > prev_bin + 20 or j == len(bin_freqs) - 1:
+                    if j != 0:
+                        end = current_bin if j == len(bin_freqs) - 1 else bin_freqs[j - 1][0]
+                        x_extract = x[(x >= start) & (x <= end + 5)]
+                        if len(x_extract) > 1:
+                            cluster.append(x_extract)
+                    start = current_bin
+                prev_bin = current_bin
+
+            x_list = np.append(x_list, np.median(cluster[0]))
+            sintheta = n / theoretical_d * np.sqrt(150.4 / voltages[i])
             sintheta_list = np.append(sintheta_list, sintheta)
 
     plt.scatter(sintheta_list, x_list)
@@ -133,8 +154,11 @@ if __name__ == "__main__":
             filename = 'L16{}.tif'.format(450 + i)
             detect(filename, dir_path=dir_path)
     else:
-        # detect('/Users/hiroki/Develop/School/blob_detection/data/L16001-L17000/L16474.tif', isplot=True)
+        # detect(os.path.join(DATA_DIR, 'L16479.tif'), isplot=True)
+        # detect_base_blob(2.504, ['L16480.tif'], [252.7], isfilename=True)
         detect_base_blob(2.504,
                          ['L16469.tif', 'L16470.tif', 'L16471.tif', 'L16472.tif', 'L16473.tif', 'L16474.tif',
-                          'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif'],
-                         [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1, 179.2, 193.7, 215.3, 230.3], isfilename=True)
+                          'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif', 'L16480.tif',
+                          'L16481.tif'],
+                         [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1, 179.2, 193.7, 215.3, 230.3, 252.7, 264.9],
+                         isfilename=True)
