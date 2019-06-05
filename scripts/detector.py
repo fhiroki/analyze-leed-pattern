@@ -4,6 +4,7 @@ from datetime import datetime
 import cv2
 from tqdm import tqdm
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
@@ -47,19 +48,20 @@ def detect_blob(img, img_mask):
     return cimg, circles
 
 
-def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False):
+def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False, isplot=False):
     x_list = np.array(0)
     sintheta_list = np.array(0)
     for i in range(len(image_paths)):
         if isfilename:
-            vector = detect(os.path.join(DATA_DIR, image_paths[i]), theoretical_d)
+            vector = detect(os.path.join(DATA_DIR, image_paths[i]))
         else:
-            vector = detect(image_paths[i], theoretical_d)
+            vector = detect(image_paths[i])
 
         if vector is not None:
             x = cv2.magnitude(vector[:, 0], vector[:, 1])
 
             (freq, bins, _) = plt.hist(x, bins=100, range=(0, 500))
+            plt.close()
 
             bin_freqs = []
             for j in range(100):
@@ -80,24 +82,62 @@ def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False):
                     start = current_bin
                 prev_bin = current_bin
 
+            # TODO - use cluster >= 1
             x_list = np.append(x_list, np.median(cluster[0]))
             sintheta = n / theoretical_d * np.sqrt(150.4 / voltages[i])
             sintheta_list = np.append(sintheta_list, sintheta)
 
-    plt.scatter(sintheta_list, x_list)
-    plt.xlim([0, 0.6])
-    plt.ylim([0, 500])
-
     x = sintheta_list / np.sqrt(1 - sintheta_list ** 2)
     r, intercept = np.polyfit(x, x_list, 1)
-    plt.plot(x, np.poly1d([r, intercept])(x), label='r={}'.format(round(r, 2)))
-    plt.legend()
-    plt.show()
+
+    if isplot:
+        plt.scatter(sintheta_list, x_list)
+        plt.xlim([0, 0.6])
+        plt.ylim([0, 500])
+
+        plt.plot(x, np.poly1d([r, intercept])(x), label='r={}'.format(round(r, 2)))
+        plt.legend()
+        plt.show()
 
     return r
 
 
-def detect(image_path, theoretical_d=0, dir_path=None, isplot=False):
+def detect_mole_blob(r, image_paths, voltages, isfilename=False):
+    d_invs = np.array([])
+    thetas = np.array([])
+    for i in range(len(image_paths)):
+        if isfilename:
+            vector = detect(os.path.join(DATA_DIR, image_paths[i]))
+        else:
+            vector = detect(image_paths[i])
+
+        if vector is not None:
+            x, theta = cv2.cartToPolar(vector[:, 0], vector[:, 1])
+            theta = np.pi - theta
+            d = np.sqrt(150.4 / voltages[i]) * np.sqrt(x ** 2 + r ** 2) / x
+            d_inv = 1 / d
+
+            d_invs = np.append(d_invs, d_inv)
+            thetas = np.append(thetas, theta)
+
+    d_invs = d_invs.flatten()
+    thetas = thetas.flatten()
+
+    # TODO - 角度補正
+    # (freq, bins, _) = plt.hist(thetas, bins=100, range=(-np.pi, np.pi))
+    # plt.show()
+
+    thetas = pd.cut(thetas, 12)
+    thetas = [theta.mid for theta in thetas]
+
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_subplot(111, projection='polar')
+    ax.plot(thetas, d_invs, 'o')
+
+    plt.show()
+
+
+def detect(image_path, dir_path=None, isplot=False):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
     if isplot:
@@ -154,11 +194,18 @@ if __name__ == "__main__":
             filename = 'L16{}.tif'.format(450 + i)
             detect(filename, dir_path=dir_path)
     else:
-        # detect(os.path.join(DATA_DIR, 'L16479.tif'), isplot=True)
+        # detect(os.path.join(DATA_DIR, 'L16498.tif'), isplot=True)
         # detect_base_blob(2.504, ['L16480.tif'], [252.7], isfilename=True)
-        detect_base_blob(2.504,
-                         ['L16469.tif', 'L16470.tif', 'L16471.tif', 'L16472.tif', 'L16473.tif', 'L16474.tif',
-                          'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif', 'L16480.tif',
-                          'L16481.tif'],
-                         [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1, 179.2, 193.7, 215.3, 230.3, 252.7, 264.9],
+
+        r = detect_base_blob(2.504,
+                             ['L16469.tif', 'L16470.tif', 'L16471.tif', 'L16472.tif', 'L16473.tif', 'L16474.tif',
+                              'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif', 'L16480.tif',
+                              'L16481.tif'],
+                             [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1,
+                                 179.2, 193.7, 215.3, 230.3, 252.7, 264.9],
+                             isfilename=True)
+
+        detect_mole_blob(r,
+                         ['L16495.tif', 'L16496.tif', 'L16498.tif', 'L16499.tif', 'L16500.tif', 'L16501.tif'],
+                         [15.7, 43.4, 23.9, 42.3, 45.3, 51.1],
                          isfilename=True)

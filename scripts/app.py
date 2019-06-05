@@ -88,17 +88,12 @@ class Application(tk.Frame):
         ttk.Button(self.fm_run, text='RUN', command=self.run).pack()
 
     def run(self):
+        theoretical_d = float(self.theoretical_d.get().replace('\x10', ''))
         base_voltages = [float(base_voltage.get().replace('\x10', '')) for base_voltage in self.base_voltages]
-        r = detector.detect_base_blob(float(self.theoretical_d.get().replace('\x10', '')),
-                                      self.base_image_paths, base_voltages)
-        print('r:', r)
-        # print('theoretical d: {}'.format(self.theoretical_d.get()))
-        # print('Base')
-        # print('image: {}'.format(self.base_image_paths))
-        # print('voltages: {}\n'.format([base_voltage.get() for base_voltage in self.base_voltages]))
-        # print('Molecules')
-        # print('image: {}'.format(self.mole_image_paths))
-        # print('voltages: {}'.format([mole_voltage.get() for mole_voltage in self.mole_voltages]))
+        mole_voltages = [float(mole_voltage.get().replace('\x10', '')) for mole_voltage in self.mole_voltages]
+
+        r = detector.detect_base_blob(theoretical_d, self.base_image_paths, base_voltages)
+        detector.detect_mole_blob(r, self.mole_image_paths, mole_voltages)
 
     def select_file(self, isBase):
         # initialdir = os.path.abspath(os.path.dirname("__file__"))
