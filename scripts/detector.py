@@ -1,10 +1,10 @@
 import os
 from datetime import datetime
+import math
 
 import cv2
 from tqdm import tqdm
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
@@ -60,9 +60,7 @@ def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False, isp
         if vector is not None:
             x = cv2.magnitude(vector[:, 0], vector[:, 1])
 
-            (freq, bins, _) = plt.hist(x, bins=100, range=(0, 500))
-            plt.close()
-
+            freq, bins = np.histogram(x, bins=100, range=(0, 500))
             bin_freqs = []
             for j in range(100):
                 if freq[j]:
@@ -76,9 +74,9 @@ def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False, isp
                 if current_bin > prev_bin + 20 or j == len(bin_freqs) - 1:
                     if j != 0:
                         end = current_bin if j == len(bin_freqs) - 1 else bin_freqs[j - 1][0]
-                        x_extract = x[(x >= start) & (x <= end + 5)]
-                        if len(x_extract) > 1:
-                            cluster.append(x_extract)
+                        x_ex = x[(x >= start) & (x <= end + 5)]
+                        if len(x_ex) > 1:
+                            cluster.append(x_ex)
                     start = current_bin
                 prev_bin = current_bin
 
@@ -122,18 +120,45 @@ def detect_mole_blob(r, image_paths, voltages, isfilename=False):
 
     d_invs = d_invs.flatten()
     thetas = thetas.flatten()
+    thetas_adj = np.zeros(len(thetas))
 
-    # TODO - 角度補正
-    # (freq, bins, _) = plt.hist(thetas, bins=100, range=(-np.pi, np.pi))
-    # plt.show()
+    # adjust angle
+    freq, bins = np.histogram(thetas, bins=100, range=(-np.pi, np.pi))
+    bin_freqs = []
+    for i in range(100):
+        if freq[i]:
+            bin_freqs.append([bins[i], freq[i]])
 
-    thetas = pd.cut(thetas, 12)
-    thetas = [theta.mid for theta in thetas]
+    eps = np.pi / 100
+    prev_bin = -np.pi
+    start = -np.pi
+    for i in range(len(bin_freqs)):
+        current_bin = bin_freqs[i][0]
+        if current_bin > prev_bin + eps * 6 or i == len(bin_freqs) - 1:
+            if i != 0:
+                end = current_bin if i == len(bin_freqs) - 1 else bin_freqs[i - 1][0]
+                theta_idx = np.where((thetas >= start) & (thetas <= end + eps * 6))
+                theta_ex = thetas[theta_idx]
+                if len(theta_ex) > 1:
+                    thetas_adj[theta_idx] = np.mean(theta_ex)
+                else:
+                    d_invs[theta_idx] = 0
+            start = current_bin
+        prev_bin = current_bin
 
-    fig = plt.figure(figsize=(6, 6))
-    ax = fig.add_subplot(111, projection='polar')
+    for i in range(len(thetas_adj)):
+        if thetas_adj[i] < 0:
+            theta = thetas_adj[i] + np.pi
+            accept_range = ((thetas_adj >= theta - eps * 2) & (thetas_adj <= theta + eps * 2))
+            if len(thetas_adj[accept_range]) < 1:
+                d_invs[i] = 0
+
+    fig = plt.figure(figsize=(12, 6))
+    ax = fig.add_subplot(121, projection='polar')
     ax.plot(thetas, d_invs, 'o')
 
+    ax = fig.add_subplot(122, projection='polar')
+    ax.plot(thetas_adj, d_invs, 'o')
     plt.show()
 
 
@@ -197,15 +222,15 @@ if __name__ == "__main__":
         # detect(os.path.join(DATA_DIR, 'L16498.tif'), isplot=True)
         # detect_base_blob(2.504, ['L16480.tif'], [252.7], isfilename=True)
 
-        r = detect_base_blob(2.504,
-                             ['L16469.tif', 'L16470.tif', 'L16471.tif', 'L16472.tif', 'L16473.tif', 'L16474.tif',
-                              'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif', 'L16480.tif',
-                              'L16481.tif'],
-                             [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1,
-                                 179.2, 193.7, 215.3, 230.3, 252.7, 264.9],
-                             isfilename=True)
+        # r = detect_base_blob(2.504,
+        #                      ['L16469.tif', 'L16470.tif', 'L16471.tif', 'L16472.tif', 'L16473.tif', 'L16474.tif',
+        #                       'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif', 'L16480.tif',
+        #                       'L16481.tif'],
+        #                      [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1,
+        #                          179.2, 193.7, 215.3, 230.3, 252.7, 264.9],
+        #                      isfilename=True)
 
-        detect_mole_blob(r,
+        detect_mole_blob(617.11,
                          ['L16495.tif', 'L16496.tif', 'L16498.tif', 'L16499.tif', 'L16500.tif', 'L16501.tif'],
                          [15.7, 43.4, 23.9, 42.3, 45.3, 51.1],
                          isfilename=True)
