@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-import math
 
 import cv2
 from tqdm import tqdm
@@ -9,8 +8,8 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
 
-DATA_DIR = '../data/L16001-L17000/'
-OUT_DIR = '../output/image/'
+DATA_DIR = 'data/L16001-L17000/'
+OUT_DIR = 'output/image/'
 ismultiple = False
 BLOCK_SIZE = 71
 n = 1
@@ -120,45 +119,51 @@ def detect_mole_blob(r, image_paths, voltages, isfilename=False):
 
     d_invs = d_invs.flatten()
     thetas = thetas.flatten()
-    thetas_adj = np.zeros(len(thetas))
 
     # adjust angle
     freq, bins = np.histogram(thetas, bins=100, range=(-np.pi, np.pi))
-    bin_freqs = []
-    for i in range(100):
-        if freq[i]:
-            bin_freqs.append([bins[i], freq[i]])
+    active_bins = [bins[i] for i in range(len(bins) - 1) if freq[i]]
+    delta = np.pi / 50
 
-    eps = np.pi / 100
-    prev_bin = -np.pi
-    start = -np.pi
-    for i in range(len(bin_freqs)):
-        current_bin = bin_freqs[i][0]
-        if current_bin > prev_bin + eps * 6 or i == len(bin_freqs) - 1:
-            if i != 0:
-                end = current_bin if i == len(bin_freqs) - 1 else bin_freqs[i - 1][0]
-                theta_idx = np.where((thetas >= start) & (thetas <= end + eps * 6))
-                theta_ex = thetas[theta_idx]
-                if len(theta_ex) > 1:
-                    thetas_adj[theta_idx] = np.mean(theta_ex)
-                else:
-                    d_invs[theta_idx] = 0
-            start = current_bin
-        prev_bin = current_bin
+    # parameter search
+    num = 0
+    n_bin = len(active_bins)
+    fig = plt.figure(figsize=(24, 12))
+    for a in range(1, 5):
+        for b in range(1, 3):
+            num += 1
+            delta_bin = delta * a
+            start, prev_bin = -np.pi, -np.pi
+            d_invs_adj = d_invs.copy()
+            thetas_adj = np.zeros(len(thetas))
 
-    for i in range(len(thetas_adj)):
-        if thetas_adj[i] < 0:
-            theta = thetas_adj[i] + np.pi
-            accept_range = ((thetas_adj >= theta - eps * 2) & (thetas_adj <= theta + eps * 2))
-            if len(thetas_adj[accept_range]) < 1:
-                d_invs[i] = 0
+            for i in range(n_bin):
+                current_bin = active_bins[i]
+                if current_bin > prev_bin + delta_bin or i == n_bin - 1:
+                    if i != 0:
+                        end = current_bin if i == n_bin - 1 else active_bins[i - 1]
+                        theta_idx = np.where((thetas >= start) & (thetas < end + delta_bin))
+                        theta_ex = thetas[theta_idx]
+                        if len(theta_ex) > 1:
+                            thetas_adj[theta_idx] = np.median(theta_ex)
+                        else:
+                            thetas_adj[theta_idx] = 100
+                            d_invs_adj[theta_idx] = 0
+                    start = current_bin
+                prev_bin = current_bin
 
-    fig = plt.figure(figsize=(12, 6))
-    ax = fig.add_subplot(121, projection='polar')
-    ax.plot(thetas, d_invs, 'o')
+            # remove outlier
+            delta_theta = delta * b
+            for i in range(len(thetas_adj)):
+                theta = thetas_adj[i] + np.pi if thetas_adj[i] < 0 else thetas_adj[i] - np.pi
+                accept_range = ((thetas_adj >= theta - delta_theta) & (thetas_adj <= theta + delta_theta))
+                if len(thetas_adj[accept_range]) < 1:
+                    thetas_adj[i] = 100
+                    d_invs_adj[i] = 0
 
-    ax = fig.add_subplot(122, projection='polar')
-    ax.plot(thetas_adj, d_invs, 'o')
+            ax = fig.add_subplot(2, 4, num, projection='polar')
+            ax.plot(thetas_adj, d_invs_adj, 'o')
+            ax.set_title('a={},b={}'.format(a, b), loc='left')
     plt.show()
 
 
