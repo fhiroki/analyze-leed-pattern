@@ -8,15 +8,15 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
 
-DATA_DIR = 'data/L16001-L17000/'
 OUT_DIR = 'output/image/'
 ismultiple = False
-BLOCK_SIZE = 71
+BLOCK_SIZE = 81
+is111 = False  # TODO - implement GUI
 n = 1
 
 
 def detect_outer_circle(img):
-    ret, img_thresh = cv2.threshold(img, 90, 90, cv2.THRESH_TOZERO)
+    ret, img_thresh = cv2.threshold(img, 50, 50, cv2.THRESH_TOZERO)
     img_thresh = cv2.medianBlur(img_thresh, 9)
     img_thresh = cv2.adaptiveThreshold(img_thresh, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 101, 0)
     img_thresh = cv2.medianBlur(img_thresh, 15)
@@ -37,7 +37,7 @@ def detect_outer_circle(img):
 
 def detect_blob(img, img_mask):
     cimg = cv2.cvtColor(img_mask, cv2.COLOR_GRAY2RGB)
-    circles = cv2.HoughCircles(img_mask, cv2.HOUGH_GRADIENT, dp=1, minDist=90,
+    circles = cv2.HoughCircles(img_mask, cv2.HOUGH_GRADIENT, dp=1, minDist=50,
                                param1=100, param2=6, minRadius=5, maxRadius=20)
 
     circles = np.around(circles[0])
@@ -47,9 +47,11 @@ def detect_blob(img, img_mask):
     return cimg, circles
 
 
-def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False, isplot=False):
-    x_list = np.array(0)
-    sintheta_list = np.array(0)
+def detect_base_blob(theoretical_d, DATA_DIR, image_paths, voltages, is111=True, isfilename=False, isplot=False):
+    xs = np.array(0)
+    sinthetas = np.array(0)
+    delta_bin = 10
+
     for i in range(len(image_paths)):
         if isfilename:
             vector = detect(os.path.join(DATA_DIR, image_paths[i]))
@@ -59,6 +61,7 @@ def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False, isp
         if vector is not None:
             x = cv2.magnitude(vector[:, 0], vector[:, 1])
 
+            # clustering of x
             freq, bins = np.histogram(x, bins=100, range=(0, 500))
             bin_freqs = []
             for j in range(100):
@@ -70,25 +73,44 @@ def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False, isp
             start = 0
             for j in range(len(bin_freqs)):
                 current_bin = bin_freqs[j][0]
-                if current_bin > prev_bin + 20 or j == len(bin_freqs) - 1:
+                if current_bin > prev_bin + delta_bin or j == len(bin_freqs) - 1:
                     if j != 0:
                         end = current_bin if j == len(bin_freqs) - 1 else bin_freqs[j - 1][0]
-                        x_ex = x[(x >= start) & (x <= end + 5)]
+                        x_ex = x[(x >= start) & (x <= end + delta_bin)]
                         if len(x_ex) > 1:
                             cluster.append(x_ex)
                     start = current_bin
                 prev_bin = current_bin
 
             # TODO - use cluster >= 1
-            x_list = np.append(x_list, np.median(cluster[0]))
-            sintheta = n / theoretical_d * np.sqrt(150.4 / voltages[i])
-            sintheta_list = np.append(sintheta_list, sintheta)
+            if is111:
+                xs = np.append(xs, np.median(cluster[0]))
+                sintheta = n / theoretical_d * np.sqrt(150.4 / voltages[i])
+                sinthetas = np.append(sinthetas, sintheta)
+            else:
+                if len(cluster) < 3:
+                    continue
+                is_show_inner_blob = np.median(cluster[1]) / np.median(cluster[0]) > 2.0
+                if is_show_inner_blob:
+                    xs = np.append(xs, np.median(cluster[0]))
+                    sintheta = np.sqrt(150.4 / voltages[i]) / (theoretical_d * 2)
+                    sinthetas = np.append(sinthetas, sintheta)
+                    xs = np.append(xs, np.median(cluster[2]))
+                    sintheta = np.sqrt(150.4 / voltages[i]) / (theoretical_d / 2**0.5)
+                    sinthetas = np.append(sinthetas, sintheta)
+                else:
+                    xs = np.append(xs, np.median(cluster[0]))
+                    sintheta = np.sqrt(150.4 / voltages[i]) / theoretical_d
+                    sinthetas = np.append(sinthetas, sintheta)
+                    xs = np.append(xs, np.median(cluster[1]))
+                    sintheta = np.sqrt(150.4 / voltages[i]) / (theoretical_d / 2**0.5)
+                    sinthetas = np.append(sinthetas, sintheta)
 
-    x = sintheta_list / np.sqrt(1 - sintheta_list ** 2)
-    r, intercept = np.polyfit(x, x_list, 1)
+    x = sinthetas / np.sqrt(1 - sinthetas ** 2)
+    r, intercept = np.polyfit(x, xs, 1)
 
     if isplot:
-        plt.scatter(sintheta_list, x_list)
+        plt.scatter(sinthetas, xs)
         plt.xlim([0, 0.6])
         plt.ylim([0, 500])
 
@@ -99,7 +121,7 @@ def detect_base_blob(theoretical_d, image_paths, voltages, isfilename=False, isp
     return r
 
 
-def detect_mole_blob(r, image_paths, voltages, isfilename=False):
+def detect_mole_blob(r, DATA_DIR, image_paths, voltages, isfilename=False):
     d_invs = np.array([])
     thetas = np.array([])
     for i in range(len(image_paths)):
@@ -163,7 +185,9 @@ def detect_mole_blob(r, image_paths, voltages, isfilename=False):
 
             ax = fig.add_subplot(2, 4, num, projection='polar')
             ax.plot(thetas_adj, d_invs_adj, 'o')
-            ax.set_title('a={},b={}'.format(a, b), loc='left')
+            ax.set_xticklabels([])
+            ax.set_yticklabels([])
+            ax.set_title('a={},b={}'.format(a, b))
     plt.show()
 
 
@@ -173,7 +197,7 @@ def detect(image_path, dir_path=None, isplot=False):
     if isplot:
         fig, axes = plt.subplots(2, 2)
         axes[0, 0].imshow(img)
-        # axes[0, 0].set_title(filename)
+        axes[0, 0].set_title(image_path.split('/')[-1])
 
     img_mask, center = detect_outer_circle(img)
     img_mask = cv2.adaptiveThreshold(img_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, BLOCK_SIZE, 0)
@@ -182,7 +206,7 @@ def detect(image_path, dir_path=None, isplot=False):
 
     if isplot:
         axes[0, 1].imshow(img_mask)
-        axes[0, 1].set_title('adaptiveThreshold\nblock_size:{}'.format(BLOCK_SIZE))
+        axes[0, 1].set_title('adaptiveThreshold')
 
     # モルフォロジー処理
     kernel_erode = np.ones((7, 7), np.uint8)
@@ -224,18 +248,38 @@ if __name__ == "__main__":
             filename = 'L16{}.tif'.format(450 + i)
             detect(filename, dir_path=dir_path)
     else:
-        # detect(os.path.join(DATA_DIR, 'L16498.tif'), isplot=True)
-        # detect_base_blob(2.504, ['L16480.tif'], [252.7], isfilename=True)
+        # detect(os.path.join(DATA_DIR, 'L16548.tif'), isplot=True)
+        # detect(os.path.join(DATA_DIR, 'L16491.tif'), isplot=True)
 
-        # r = detect_base_blob(2.504,
-        #                      ['L16469.tif', 'L16470.tif', 'L16471.tif', 'L16472.tif', 'L16473.tif', 'L16474.tif',
-        #                       'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif', 'L16480.tif',
-        #                       'L16481.tif'],
-        #                      [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1,
-        #                          179.2, 193.7, 215.3, 230.3, 252.7, 264.9],
-        #                      isfilename=True)
+        # Test of 6P/Au(110)
+        Au_a = 4.07864
+        theoretical_d = Au_a
+        r = detect_base_blob(theoretical_d, 'data/6P_Au110/LEED_data',
+                             ['L16543.tif', 'L16544.tif', 'L16545.tif', 'L16547.tif',
+                                 'L16548.tif', 'L16549.tif', 'L16550.tif'],
+                             [134.4, 123.1, 115.7, 83.8, 79.9, 68.8, 63.4],
+                             is111=is111, isfilename=True, isplot=True)
 
-        detect_mole_blob(617.11,
-                         ['L16495.tif', 'L16496.tif', 'L16498.tif', 'L16499.tif', 'L16500.tif', 'L16501.tif'],
-                         [15.7, 43.4, 23.9, 42.3, 45.3, 51.1],
-                         isfilename=True)
+        # Test of Coronene/Cu(111)
+        Cu_a = 3.61496
+        theoretical_d = (Cu_a*2**0.5/2)*3**0.5/2
+        r = detect_base_blob(theoretical_d, 'data/Coronene_Cu111/base',
+                             ['L4898.tif', 'L4899.tif', 'L4900.tif', 'L4901.tif', 'L4902.tif', 'L4903.tif'],
+                             [98.9, 131.6, 141.1, 177.9, 231.6, 321.2],
+                             isfilename=True, isplot=True)
+
+        # Test of Coronene/Ag(111)
+        Ag_a = 4.0862
+        theoretical_d = (Ag_a*2**0.5/2)*3**0.5/2
+        r = detect_base_blob(theoretical_d, 'data/Coronene_Ag111/image/base',
+                             ['L16469.tif', 'L16470.tif', 'L16471.tif', 'L16472.tif', 'L16473.tif', 'L16474.tif',
+                              'L16475.tif', 'L16476.tif', 'L16477.tif', 'L16478.tif', 'L16479.tif', 'L16480.tif',
+                              'L16481.tif'],
+                             [80.6, 94.7, 109.2, 122.9, 136.0, 150.9, 159.1,
+                                 179.2, 193.7, 215.3, 230.3, 252.7, 264.9],
+                             isfilename=True, isplot=True)
+
+        # detect_mole_blob(617.11,
+        #                  ['L16495.tif', 'L16496.tif', 'L16498.tif', 'L16499.tif', 'L16500.tif', 'L16501.tif'],
+        #                  [15.7, 43.4, 23.9, 42.3, 45.3, 51.1],
+        #                  isfilename=True)
