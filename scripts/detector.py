@@ -91,8 +91,8 @@ def detect_blob(img, img_mask):
 
 def detect_base_blob(DATA_DIR, base_type, voltages, image_paths=None,
                      isfilename=False, isplot=False, manual_r=None):
-    xs = np.array([])
-    sinthetas = np.array([])
+    xs = np.array([0])
+    sinthetas = np.array([0])
     theta_baseline = np.ones(2) * 100
     delta_bin = 10
 
@@ -102,11 +102,12 @@ def detect_base_blob(DATA_DIR, base_type, voltages, image_paths=None,
 
     # sort images and voltages by valtages
     image_paths = [x for _, x in sorted(zip(voltages, image_paths))]
-    voltages = sorted(voltages)
+    voltages = np.sort(voltages)
 
     for i in range(len(image_paths)):
         if isfilename:
             vector = detect(os.path.join(DATA_DIR, image_paths[i]))
+            # vector = detect(os.path.join(DATA_DIR, image_paths[i]), isplot=True)
         else:
             vector = detect(image_paths[i])
 
@@ -155,23 +156,19 @@ def detect_base_blob(DATA_DIR, base_type, voltages, image_paths=None,
                 sinthetas = np.append(sinthetas, sintheta)
             elif base_type['surface'] == '110':
                 if base_type['kind'] == 'Au':
-                    if len(cluster) < 3:
-                        continue
-                    is_show_inner_blob = np.median(cluster[1]) / np.median(cluster[0]) > 2.0
-                    if is_show_inner_blob:
-                        xs = np.append(xs, np.median(cluster[0]))
-                        sintheta = np.sqrt(150.4 / voltages[i]) / a[base_type['kind']] / 2
-                        sinthetas = np.append(sinthetas, sintheta)
-                        xs = np.append(xs, np.median(cluster[2]))
-                        sintheta = np.sqrt(150.4 / voltages[i]) / a[base_type['kind']] * 2**0.5
-                        sinthetas = np.append(sinthetas, sintheta)
-                    else:
-                        xs = np.append(xs, np.median(cluster[0]))
-                        sintheta = np.sqrt(150.4 / voltages[i]) / a[base_type['kind']]
-                        sinthetas = np.append(sinthetas, sintheta)
-                        xs = np.append(xs, np.median(cluster[2]))
-                        sintheta = np.sqrt(150.4 / voltages[i]) / a[base_type['kind']] * 2**0.5
-                        sinthetas = np.append(sinthetas, sintheta)
+                    if theta_baseline[0] == 100:
+                        theta_baseline[0] = min(cluster_theta[0])
+
+                    for j in range(len(cluster_theta)):
+                        error = np.abs(theta_baseline[0] - min(cluster_theta[j]))
+                        if error < 0.1:
+                            x = np.median(cluster[j])
+                            lamb = np.sqrt(150.4 / voltages[i])
+                            n = (x / lamb) // 100 + 1
+                            sintheta = n / (2 * a[base_type['kind']]) * lamb
+
+                            xs = np.append(xs, x)
+                            sinthetas = np.append(sinthetas, sintheta)
                 else:
                     if theta_baseline[0] == 100:
                         theta_baseline[0] = min(cluster_theta[0])
