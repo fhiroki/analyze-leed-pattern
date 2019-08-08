@@ -8,7 +8,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 a = {'Cu': 3.61496, 'Ag': 4.0862, 'Au': 4.07864}
-BLOCK_SIZE = 81
+BLOCK_SIZE = 121
 
 
 def detect(image_path, dir_path=None, isplot=False, ismultiple=False):
@@ -20,7 +20,7 @@ def detect(image_path, dir_path=None, isplot=False, ismultiple=False):
         axes[0, 0].set_title(image_path.split('/')[-1])
 
     img_mask, center = detect_outer_circle(img)
-    img_mask = cv2.adaptiveThreshold(img_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 151, 0)
+    img_mask = cv2.adaptiveThreshold(img_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, BLOCK_SIZE, 0)
     if center[0]:
         cv2.circle(img_mask, (center[0], center[1]), 80, 0, -1)
 

@@ -30,10 +30,9 @@ if __name__ == "__main__":
         DATA_DIR = 'data/BrHPB_Au111/second/Au111'
         base_type = {'kind': 'Au', 'surface': '111'}
         # detect(os.path.join(DATA_DIR, 'L16701.tif'), isplot=True)
-        # TODO - 電圧を調査。
-        # r = detect_base_blob(DATA_DIR, base_type
-        #                      [],
-        #                      isfilename=True, isplot=True, manual_r=623.08)
+        r = detect_base_blob(DATA_DIR, base_type,
+                             [79.9, 95.9, 121.4, 163.8, 189.8, 256.1, 297.6, 346.9],
+                             isfilename=True, isplot=True, manual_r=623.08)
 
         # Test of Coronene/Ag(110)
         DATA_DIR = 'data/Coronene_Ag110/image/Ag110'
@@ -58,11 +57,10 @@ if __name__ == "__main__":
         # Test of BV/Cu(110)
         DATA_DIR = 'data/BV_Cu110/image/Cu110'
         base_type = {'kind': 'Cu', 'surface': '110'}
-        # TODO - manual_rの値を調査。
         # detect(os.path.join(DATA_DIR, 'L14846.tif'), isplot=True)
         r = detect_base_blob(DATA_DIR, base_type,
                              [163.5, 131.1, 61.4, 139.8, 136.1, 118.1, 60.8, 154.2, 136.3, 121.2, 63.4],
-                             isfilename=True, isplot=True)
+                             isfilename=True, isplot=True, manual_r=637.95)
 
         # Test of Coronene/Cu(111)
         DATA_DIR = 'data/Coronene_Cu111/image/Cu111'
