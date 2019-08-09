@@ -3,3 +3,4 @@ output/
 ref/
 .vscode
 __pychache__
+.DS_Store
