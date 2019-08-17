@@ -166,6 +166,8 @@ def detect_base_blob(DATA_DIR, base_type, voltages, image_paths=None,
                             lamb = np.sqrt(150.4 / voltages[i])
                             n = (x / lamb) // 100 + 1
                             sintheta = n / (2 * a[base_type['kind']]) * lamb
+                            if n > 2:
+                                continue
 
                             xs = np.append(xs, x)
                             sinthetas = np.append(sinthetas, sintheta)
@@ -200,6 +202,8 @@ def detect_base_blob(DATA_DIR, base_type, voltages, image_paths=None,
         plt.scatter(sinthetas, xs)
         plt.xlim([0, 0.6])
         plt.ylim([0, 500])
+        plt.xlabel("sinθ")
+        plt.ylabel("X'")
 
         plt.title('{}({})'.format(base_type['kind'], base_type['surface']))
         plt.plot(x, np.poly1d([r, intercept])(x), label='r={}, manual_r={}'.format(round(r, 2), manual_r))
