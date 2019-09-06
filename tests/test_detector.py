@@ -1,5 +1,5 @@
 import unittest
-from scripts.detector import detect_base_blob
+from detector import detect_base_blob
 
 
 DELTA = 10
@@ -12,7 +12,7 @@ class TestDetectBaseBlob(unittest.TestCase):
 
     def test_Au110(self):
         ''' Test of 6P/Au(110) '''
-        DATA_DIR = 'data/6P_Au110/image/Au110'
+        DATA_DIR = '../data/6P_Au110/image/Au110'
         base_type = {'kind': 'Au', 'surface': '110'}
         expected_r = 601.69
         actual_r = detect_base_blob(DATA_DIR, base_type,
@@ -22,7 +22,7 @@ class TestDetectBaseBlob(unittest.TestCase):
 
     def test_Au111(self):
         ''' Test of BrHPB/Au(111) '''
-        DATA_DIR = 'data/BrHPB_Au111/second/Au111'
+        DATA_DIR = '../data/BrHPB_Au111/second/Au111'
         base_type = {'kind': 'Au', 'surface': '111'}
         expected_r = 623.08
         actual_r = detect_base_blob(DATA_DIR, base_type,
@@ -32,7 +32,7 @@ class TestDetectBaseBlob(unittest.TestCase):
 
     def test_Ag110(self):
         ''' Test of Coronene/Ag(110) '''
-        DATA_DIR = 'data/Coronene_Ag110/image/Ag110'
+        DATA_DIR = '../data/Coronene_Ag110/image/Ag110'
         base_type = {'kind': 'Ag', 'surface': '110'}
         expected_r = 575.24
         actual_r = detect_base_blob(DATA_DIR, base_type,
@@ -42,7 +42,7 @@ class TestDetectBaseBlob(unittest.TestCase):
 
     def test_Ag111(self):
         ''' Test of Coronene/Ag(111) '''
-        DATA_DIR = 'data/Coronene_Ag111/image/Ag111'
+        DATA_DIR = '../data/Coronene_Ag111/image/Ag111'
         base_type = {'kind': 'Ag', 'surface': '111'}
         expected_r = 617.11
         actual_r = detect_base_blob(DATA_DIR, base_type,
@@ -53,7 +53,7 @@ class TestDetectBaseBlob(unittest.TestCase):
 
     def test_Cu110(self):
         ''' Test of BV/Cu(110) '''
-        DATA_DIR = 'data/BV_Cu110/image/Cu110'
+        DATA_DIR = '../data/BV_Cu110/image/Cu110'
         base_type = {'kind': 'Cu', 'surface': '110'}
         expected_r = 637.95
         actual_r = detect_base_blob(DATA_DIR, base_type,
@@ -63,7 +63,7 @@ class TestDetectBaseBlob(unittest.TestCase):
 
     def test_Cu111(self):
         ''' Test of Coronene/Cu(111) '''
-        DATA_DIR = 'data/Coronene_Cu111/image/Cu111'
+        DATA_DIR = '../data/Coronene_Cu111/image/Cu111'
         base_type = {'kind': 'Cu', 'surface': '111'}
         expected_r = 603.2
         actual_r = detect_base_blob(DATA_DIR, base_type,

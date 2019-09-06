@@ -5,6 +5,8 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
+
+import utils
 warnings.filterwarnings('ignore')
 
 a = {'Cu': 3.61496, 'Ag': 4.0862, 'Au': 4.07864}
@@ -91,18 +93,12 @@ def detect_blob(img, img_mask):
 
 def detect_base_blob(DATA_DIR, base_type, voltages, image_paths=None,
                      isfilename=False, isplot=False, manual_r=None):
+    image_paths, voltages = utils.sort_images_and_voltages(DATA_DIR, image_paths, voltages)
+
     xs = np.array([0])
     sinthetas = np.array([0])
     theta_baseline = np.ones(2) * 100
     delta_bin = 10
-
-    if image_paths is None:
-        image_paths = sorted(os.listdir(DATA_DIR))
-        image_paths = [f for f in image_paths if f.endswith('tif')]
-
-    # sort images and voltages by valtages
-    image_paths = [x for _, x in sorted(zip(voltages, image_paths))]
-    voltages = np.sort(voltages)
 
     for i in range(len(image_paths)):
         if isfilename:
@@ -213,9 +209,12 @@ def detect_base_blob(DATA_DIR, base_type, voltages, image_paths=None,
     return r
 
 
-def detect_mole_blob(r, DATA_DIR, image_paths, voltages, isfilename=False):
+def detect_mole_blob(r, DATA_DIR, voltages, image_paths=None, isfilename=False):
+    image_paths, voltages = utils.sort_images_and_voltages(DATA_DIR, image_paths, voltages)
+
     d_invs = np.array([])
     thetas = np.array([])
+
     for i in range(len(image_paths)):
         if isfilename:
             vector = detect(os.path.join(DATA_DIR, image_paths[i]))
