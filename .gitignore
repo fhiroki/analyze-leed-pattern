@@ -1,6 +1,8 @@
 data/
 output/
 ref/
-.vscode
+
 __pycache__
+leed.egg-info
+.vscode
 .DS_Store
