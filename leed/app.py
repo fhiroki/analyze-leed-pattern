@@ -6,7 +6,7 @@ from tkinter import filedialog, ttk
 import cv2
 from PIL import Image, ImageTk
 
-import detector
+from leed import detector
 
 
 class Application(tk.Frame):

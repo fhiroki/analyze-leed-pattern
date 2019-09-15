@@ -1,5 +1,5 @@
 import unittest
-from scripts.detector import detect_base_blob
+from leed.detect_base_blob import detect_base_blob
 
 
 class TestDetectBaseBlob(unittest.TestCase):
