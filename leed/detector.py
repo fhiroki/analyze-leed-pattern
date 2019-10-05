@@ -10,7 +10,7 @@ a = {'Cu': 3.61496, 'Ag': 4.0862, 'Au': 4.07864}
 BLOCK_SIZE = 121
 
 
-def detect(image_path, dir_path=None, isplot=False, ismultiple=False):
+def detect(image_path, isplot=False, output_image=None):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
     if isplot:
@@ -48,8 +48,8 @@ def detect(image_path, dir_path=None, isplot=False, ismultiple=False):
     except:
         pass
 
-    if ismultiple:
-        plt.savefig(os.path.join(dir_path, image_path.split('/')[-1]))
+    if output_image:
+        plt.savefig(output_image)
     else:
         if isplot:
             plt.show()

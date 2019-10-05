@@ -44,7 +44,7 @@ def detect_base_blob(input_dir, base_type, voltages, image_paths=None,
     for i in range(len(image_paths)):
         if isfilename:
             vector = detect(os.path.join(input_dir, image_paths[i]))
-            # vector = detect(os.path.join(DATA_DIR, image_paths[i]), isplot=True)
+            # vector = detect(os.path.join(input_dir, image_paths[i]), isplot=True)
         else:
             vector = detect(image_paths[i])
 
