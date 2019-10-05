@@ -10,48 +10,42 @@ a = {'Cu': 3.61496, 'Ag': 4.0862, 'Au': 4.07864}
 BLOCK_SIZE = 121
 
 
+def set_image(axes, img, title):
+    axes.imshow(img)
+    axes.axis('off')
+    axes.set_title(title)
+
+
 def detect(image_path, isplot=False, output_image=None):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-
-    if isplot:
-        fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-        axes[0, 0].imshow(img)
-        axes[0, 0].set_title(image_path.split('/')[-1])
-
-    img_mask, center = detect_outer_circle(img)
-    img_mask = cv2.adaptiveThreshold(img_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, BLOCK_SIZE, 0)
+    img_thresh, center = detect_outer_circle(img)
+    img_thresh = cv2.adaptiveThreshold(img_thresh, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                       cv2.THRESH_BINARY, BLOCK_SIZE, 0)
     if center[0]:
-        cv2.circle(img_mask, (center[0], center[1]), 80, 0, -1)
-
-    if isplot:
-        axes[0, 1].imshow(img_mask)
-        axes[0, 1].set_title('adaptiveThreshold')
+        cv2.circle(img_thresh, (center[0], center[1]), 80, 0, -1)
 
     # モルフォロジー処理
     kernel_erode = np.ones((8, 8), np.uint8)
     kernel_dilate = np.ones((10, 10), np.uint8)
-    img_mask = cv2.erode(img_mask, kernel_erode, iterations=1)
+    img_mask = cv2.erode(img_thresh, kernel_erode, iterations=1)
     img_mask = cv2.dilate(img_mask, kernel_dilate, iterations=1)
-
-    if isplot:
-        axes[1, 0].imshow(img_mask)
-        axes[1, 0].set_title('morphology')
 
     vector = None
     try:
         cimg, circles = detect_blob(img, img_mask)
         vector = center - circles[:, :2]
-
-        if isplot:
-            axes[1, 1].imshow(cimg)
-            axes[1, 1].set_title('detect circles')
     except:
         pass
 
-    if output_image:
-        plt.savefig(output_image)
-    else:
-        if isplot:
+    if isplot:
+        fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+        set_image(axes[0, 0], img, image_path.split('/')[-1])
+        set_image(axes[0, 1], img_thresh, 'adaptiveThreshold')
+        set_image(axes[1, 0], img_mask, 'morphology')
+        set_image(axes[1, 1], cimg, 'detect circles')
+        if output_image:
+            plt.savefig(output_image)
+        else:
             plt.show()
 
     return vector
