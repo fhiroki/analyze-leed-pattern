@@ -12,8 +12,7 @@ def setup_argument_parser(parser):
 
 
 def main(args):
-    isplot = False if args.output_image else True
-    detect(args.input_image, isplot=isplot, output_image=args.output_image)
+    detect(args.input_image, isplot=True, output_image=args.output_image)
 
 
 if __name__ == "__main__":
