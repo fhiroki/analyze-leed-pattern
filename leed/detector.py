@@ -14,7 +14,7 @@ def detect(image_path, isplot=False, output_image=None):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
     if isplot:
-        fig, axes = plt.subplots(2, 2)
+        fig, axes = plt.subplots(2, 2, figsize=(10, 8))
         axes[0, 0].imshow(img)
         axes[0, 0].set_title(image_path.split('/')[-1])
 
