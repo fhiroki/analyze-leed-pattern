@@ -168,7 +168,7 @@ def calc_rprime(input_images_dir, base_type, input_voltages_path, image_paths=No
 def main(args):
     base_type = {'kind': args.kind, 'surface': args.surface}
     r = calc_rprime(args.input_images_dir, base_type, args.input_voltages_path,
-                    isplot=args.isplot, output_dir=args.output_plot_dir, manual_r=args.manual_r)
+                    isplot=args.isplot, output_plot_dir=args.output_plot_dir, manual_r=args.manual_r)
     print("r: {}".format(r))
 
 
