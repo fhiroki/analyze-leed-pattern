@@ -25,8 +25,8 @@ def setup_argument_parser(parser):
     parser.add_argument('--manual-r', help='calculated r by myself')
 
 
-def detect_base_blob(input_dir, base_type, voltages, image_paths=None,
-                     isfilename=True, isplot=False, output_dir=None, manual_r=None):
+def calc_rprime(input_dir, base_type, voltages, image_paths=None,
+                isfilename=True, isplot=False, output_dir=None, manual_r=None):
     xs = np.array([0])
     sinthetas = np.array([0])
     theta_baseline = np.ones(2) * 100
@@ -155,8 +155,8 @@ def detect_base_blob(input_dir, base_type, voltages, image_paths=None,
 def main(args):
     base_type = {'kind': args.kind, 'surface': args.surface}
     voltages = [float(voltage) for voltage in args.voltages.split(',')]
-    r = detect_base_blob(args.input_dir, base_type, voltages,
-                         isplot=args.isplot, output_dir=args.output_dir, manual_r=args.manual_r)
+    r = calc_rprime(args.input_dir, base_type, voltages,
+                    isplot=args.isplot, output_dir=args.output_dir, manual_r=args.manual_r)
     print("r: {}".format(r))
 
 
