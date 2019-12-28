@@ -145,9 +145,13 @@ def calc_rprime(input_dir, base_type, voltages, image_paths=None,
         plt.title('{}({})'.format(base_type['kind'], base_type['surface']))
         plt.plot(x, np.poly1d([r, intercept])(x), label='r={}, manual_r={}'.format(round(r, 2), manual_r))
         plt.legend()
-        filename = 'r_' + datetime.now().strftime('%Y%m%d_%H%M%S') + '.png'
-        plt.savefig(os.path.join(output_dir, filename))
-        print('save figure as {}'.format(os.path.join(output_dir, filename)))
+
+        if output_dir:
+            filename = 'r_' + datetime.now().strftime('%Y%m%d_%H%M%S') + '.png'
+            plt.savefig(os.path.join(output_dir, filename))
+            print('save figure as {}'.format(os.path.join(output_dir, filename)))
+        else:
+            plt.show()
 
     return r
 
