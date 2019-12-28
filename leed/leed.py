@@ -49,9 +49,8 @@ def main():
     register_plot_detected_image(parser_plot_detected_image)
 
     epilog_calc_rprime = '''
-    ex) calc-rprime --kind Ag --surface 111
-     --voltages 80.6,94.7,109.2,122.9,136.0,150.9,159.1,179.2,193.7,215.3,230.3,252.7,264.9
-     --input-dir data/Coronene_Ag111/image/Ag111/ --isplot --output-dir output/r
+    ex) calc-rprime --kind Ag --surface 111 --input-voltages-path ./data/Coronene_Ag111/voltages.csv
+     --input-images-dir ./data/Coronene_Ag111/image/Ag111/ --isplot --output-plot-dir ./output/r
     '''
     parser_calc_rprime = subparsers.add_parser('calc-rprime', help='see `-h`', epilog=epilog_calc_rprime)
     register_calc_rprime(parser_calc_rprime)

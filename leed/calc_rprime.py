@@ -7,6 +7,7 @@ import warnings
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from leed.detector import detect
 warnings.filterwarnings('ignore')
@@ -16,17 +17,17 @@ def setup_argument_parser(parser):
     """
     Set argument
     """
-    parser.add_argument('--input-dir', help='input images directory', required=True)
-    parser.add_argument('--output-dir', help='output image directory')
+    parser.add_argument('--input-images-dir', help='input images directory', required=True)
+    parser.add_argument('--output-plot-dir', help='output plot image directory')
     parser.add_argument('--kind', help='base type', choices=['Au', 'Ag', 'Cu'], required=True)
     parser.add_argument('--surface', help='base surface', choices=['110', '111'], required=True)
-    parser.add_argument('--voltages', help='beam voltages (ex. 1.0,2.0,3.0)', required=True)
+    parser.add_argument('--input-voltages-path', help='input image, beam voltage csv file', required=True)
     parser.add_argument('--isplot', help='draw a scatter plot of sinθ and X', action='store_true')
     parser.add_argument('--manual-r', help='calculated r by myself')
 
 
-def calc_rprime(input_dir, base_type, voltages, image_paths=None,
-                isfilename=True, isplot=False, output_dir=None, manual_r=None):
+def calc_rprime(input_images_dir, base_type, input_voltages_path, image_paths=None,
+                isfilename=True, isplot=False, output_plot_dir=None, manual_r=None):
     xs = np.array([0])
     sinthetas = np.array([0])
     theta_baseline = np.ones(2) * 100
@@ -34,16 +35,18 @@ def calc_rprime(input_dir, base_type, voltages, image_paths=None,
     a = {'Cu': 3.61496, 'Ag': 4.0862, 'Au': 4.07864}
 
     if image_paths is None:
-        image_paths = sorted(os.listdir(input_dir))
+        image_paths = sorted(os.listdir(input_images_dir))
         image_paths = [f for f in image_paths if f.endswith('tif')]
 
-    # sort images and voltages by valtages
-    image_paths = [x for _, x in sorted(zip(voltages, image_paths))]
-    voltages = np.sort(voltages)
+    voltages_df = pd.read_csv(input_voltages_path)
+    voltages = []
+    for image_path in image_paths:
+        image_number = int(image_path.split('.')[0][1:])
+        voltages.append(voltages_df[voltages_df['image'] == image_number]['voltage'].values[0])
 
     for i in range(len(image_paths)):
         if isfilename:
-            vector = detect(os.path.join(input_dir, image_paths[i]))
+            vector = detect(os.path.join(input_images_dir, image_paths[i]))
             # vector = detect(os.path.join(input_dir, image_paths[i]), isplot=True)
         else:
             vector = detect(image_paths[i])
@@ -143,13 +146,19 @@ def calc_rprime(input_dir, base_type, voltages, image_paths=None,
         plt.ylabel("X'")
 
         plt.title('{}({})'.format(base_type['kind'], base_type['surface']))
-        plt.plot(x, np.poly1d([r, intercept])(x), label='r={}, manual_r={}'.format(round(r, 2), manual_r))
+
+        if manual_r:
+            label = 'r={}, manual_r={}'.format(round(r, 2), manual_r)
+        else:
+            label = 'r={}'.format(round(r, 2))
+
+        plt.plot(x, np.poly1d([r, intercept])(x), label=label)
         plt.legend()
 
-        if output_dir:
+        if output_plot_dir:
             filename = 'r_' + datetime.now().strftime('%Y%m%d_%H%M%S') + '.png'
-            plt.savefig(os.path.join(output_dir, filename))
-            print('save figure as {}'.format(os.path.join(output_dir, filename)))
+            plt.savefig(os.path.join(output_plot_dir, filename))
+            print('save figure as {}'.format(os.path.join(output_plot_dir, filename)))
         else:
             plt.show()
 
@@ -158,9 +167,8 @@ def calc_rprime(input_dir, base_type, voltages, image_paths=None,
 
 def main(args):
     base_type = {'kind': args.kind, 'surface': args.surface}
-    voltages = [float(voltage) for voltage in args.voltages.split(',')]
-    r = calc_rprime(args.input_dir, base_type, voltages,
-                    isplot=args.isplot, output_dir=args.output_dir, manual_r=args.manual_r)
+    r = calc_rprime(args.input_images_dir, base_type, args.input_voltages_path,
+                    isplot=args.isplot, output_dir=args.output_plot_dir, manual_r=args.manual_r)
     print("r: {}".format(r))
 
 
