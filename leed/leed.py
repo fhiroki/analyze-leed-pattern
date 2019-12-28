@@ -25,8 +25,8 @@ def register_plot_detected_image(parser):
     parser.set_defaults(handler=command)
 
 
-def register_detect_base_blob(parser):
-    from leed.detect_base_blob import setup_argument_parser, main
+def register_calc_rprime(parser):
+    from leed.calc_rprime import setup_argument_parser, main
 
     def command(args):
         main(args)
@@ -48,13 +48,13 @@ def main():
         'plot-detected-image', help='see `-h`', epilog=epilog_plot_detected_image)
     register_plot_detected_image(parser_plot_detected_image)
 
-    epilog_detect_base_blob = '''
-    ex) detect-base-blob --kind Ag --surface 111
+    epilog_calc_rprime = '''
+    ex) calc-rprime --kind Ag --surface 111
      --voltages 80.6,94.7,109.2,122.9,136.0,150.9,159.1,179.2,193.7,215.3,230.3,252.7,264.9
      --input-dir data/Coronene_Ag111/image/Ag111/ --isplot --output-dir output/r
     '''
-    parser_detect_base_blob = subparsers.add_parser('detect-base-blob', help='see `-h`', epilog=epilog_detect_base_blob)
-    register_detect_base_blob(parser_detect_base_blob)
+    parser_calc_rprime = subparsers.add_parser('calc-rprime', help='see `-h`', epilog=epilog_calc_rprime)
+    register_calc_rprime(parser_calc_rprime)
 
     # to parse command line arguments, and execute processing
     args = parser.parse_args()

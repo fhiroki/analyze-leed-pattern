@@ -6,3 +6,4 @@ __pycache__
 leed.egg-info
 .vscode
 .DS_Store
+.python-version
