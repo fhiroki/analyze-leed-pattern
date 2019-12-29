@@ -15,57 +15,73 @@ pip install -e .
 
 ## Commands
 ```
-usage: leed [-h] [--version] {plot-detected-image,detect-base-blob} ...
+usage: leed [-h] [--version] {plot-detected-spot,calc-rprime,plot-dinverse} ...
 
 analyze leed pattern
 
 positional arguments:
-  {plot-detected-image,detect-base-blob}
-    plot-detected-image
-                        see `-h`
-    detect-base-blob    see `-h`
+  {plot-detected-spot,calc-rprime,plot-dinverse}
+    plot-detected-spot  see `-h`
+    calc-rprime         see `-h`
+    plot-dinverse       see `-h`
 
 optional arguments:
   -h, --help            show this help message and exit
   --version             show program's version number and exit
 ```
 
-### plot-detected-image
+### plot-detected-spot
 ```
-usage: leed plot-detected-image [-h] --input-image INPUT_IMAGE
-                                [--output-image OUTPUT_IMAGE]
+usage: leed plot-detected-spot [-h] --input-image-path INPUT_IMAGE_PATH [--output-image-path OUTPUT_IMAGE_PATH]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --input-image INPUT_IMAGE
+  --input-image-path INPUT_IMAGE_PATH
                         input image path
-  --output-image OUTPUT_IMAGE
+  --output-image-path OUTPUT_IMAGE_PATH
                         output image path
 
-ex) plot-detected-image --input-image
-data/Coronene_Ag111/image/Coronene/L16501.tif --output-image output/images
+ex) plot-detected-spot --input-image-path images/L16501.tif --output-image-path output/images/L16501_detected.tif
 ```
 
-### detect-base-blob
+### calc-rprime
 ```
-usage: leed detect-base-blob [-h] --input-dir INPUT_DIR
-                             [--output-dir OUTPUT_DIR] --kind {Au,Ag,Cu}
-                             --surface {110,111} --voltages VOLTAGES
-                             [--isplot] [--manual-r MANUAL_R]
+usage: leed calc-rprime [-h] --input-images-dir INPUT_IMAGES_DIR
+      --input-voltages-path INPUT_VOLTAGES_PATH --kind {Au,Ag,Cu} --surface {110,111}
+      [--isplot] [--output-image-path OUTPUT_IMAGE_PATH] [--manual-r MANUAL_R]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --input-dir INPUT_DIR
+  --input-images-dir INPUT_IMAGES_DIR
                         input images directory
-  --output-dir OUTPUT_DIR
-                        output image directory
+  --input-voltages-path INPUT_VOLTAGES_PATH
+                        input image, beam voltage csv file
   --kind {Au,Ag,Cu}     base type
   --surface {110,111}   base surface
-  --voltages VOLTAGES   beam voltages (ex. 1.0,2.0,3.0)
   --isplot              draw a scatter plot of sinθ and X
+  --output-image-path OUTPUT_IMAGE_PATH
+                        output plot image path
   --manual-r MANUAL_R   calculated r by myself
 
-ex) detect-base-blob --kind Ag --surface 111 --voltages
-80.6,94.7,109.2,122.9,136.0,150.9,159.1,179.2,193.7,215.3,230.3,252.7,264.9
---input-dir data/Coronene_Ag111/image/Ag111/ --isplot --output-dir output/r
+ex) calc-rprime --kind Ag --surface 111 --input-images-dir image/Ag111/
+  --input-voltages-path voltages.csv --isplot --output-image_path output/rprime.png
+```
+
+### plot-dinverse
+```
+usage: leed plot-dinverse [-h] --input-images-dir INPUT_IMAGES_DIR
+       --input-voltages-path INPUT_VOLTAGES_PATH [--rprime RPRIME] [--output-image-path OUTPUT_IMAGE_PATH]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --input-images-dir INPUT_IMAGES_DIR
+                        input images directory
+  --input-voltages-path INPUT_VOLTAGES_PATH
+                        input image, beam voltage csv file
+  --rprime RPRIME       calculated rprime by calc-rprime
+  --output-image-path OUTPUT_IMAGE_PATH
+                        output plot image path
+
+ex) plot-dinverse --input-images-dir images/Coronene/ --input-voltages-path voltages.csv
+  --output-image-path output/dinverse.png
 ```

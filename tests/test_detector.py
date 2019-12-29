@@ -2,7 +2,7 @@ import unittest
 from leed.calc_rprime import calc_rprime
 
 
-class TestDetectBaseBlob(unittest.TestCase):
+class TestCalcRprime(unittest.TestCase):
     '''
     test case of detector.py
     '''
@@ -13,8 +13,7 @@ class TestDetectBaseBlob(unittest.TestCase):
         input_voltages_path = './data/6P_Au110/image/Au110/voltages.csv'
         base_type = {'kind': 'Au', 'surface': '110'}
         expected_r = 601.69
-        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path,
-                               isfilename=True, isplot=False, manual_r=expected_r)
+        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, manual_r=expected_r)
         print(base_type)
         print('expected: {}, actual: {}, diff: {}'.format(expected_r, actual_r, abs(expected_r - actual_r)))
         self.assertAlmostEqual(expected_r, actual_r, delta=10)
@@ -25,8 +24,7 @@ class TestDetectBaseBlob(unittest.TestCase):
         input_voltages_path = './data/BrHPB_Au111/second/Au111/voltages.csv'
         base_type = {'kind': 'Au', 'surface': '111'}
         expected_r = 623.08
-        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path,
-                               isfilename=True, isplot=False, manual_r=expected_r)
+        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, manual_r=expected_r)
         print(base_type)
         print('expected: {}, actual: {}, diff: {}'.format(expected_r, actual_r, abs(expected_r - actual_r)))
         self.assertAlmostEqual(expected_r, actual_r, delta=10)
@@ -37,8 +35,7 @@ class TestDetectBaseBlob(unittest.TestCase):
         input_voltages_path = './data/Coronene_Ag110/image/Ag110/voltages.csv'
         base_type = {'kind': 'Ag', 'surface': '110'}
         expected_r = 575.24
-        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path,
-                               isfilename=True, isplot=False, manual_r=expected_r)
+        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, manual_r=expected_r)
         print(base_type)
         print('expected: {}, actual: {}, diff: {}'.format(expected_r, actual_r, abs(expected_r - actual_r)))
         self.assertAlmostEqual(expected_r, actual_r, delta=10)
@@ -49,8 +46,7 @@ class TestDetectBaseBlob(unittest.TestCase):
         input_voltages_path = './data/Coronene_Ag111/image/Ag111/voltages.csv'
         base_type = {'kind': 'Ag', 'surface': '111'}
         expected_r = 617.11
-        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isfilename=True, isplot=False,
-                               manual_r=expected_r)
+        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, manual_r=expected_r)
         print(base_type)
         print('expected: {}, actual: {}, diff: {}'.format(expected_r, actual_r, abs(expected_r - actual_r)))
         self.assertAlmostEqual(expected_r, actual_r, delta=10)
@@ -61,8 +57,7 @@ class TestDetectBaseBlob(unittest.TestCase):
         input_voltages_path = './data/BV_Cu110/image/Cu110/voltages.csv'
         base_type = {'kind': 'Cu', 'surface': '110'}
         expected_r = 637.95
-        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path,
-                               isfilename=True, isplot=False, manual_r=expected_r)
+        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, manual_r=expected_r)
         print(base_type)
         print('expected: {}, actual: {}, diff: {}'.format(expected_r, actual_r, abs(expected_r - actual_r)))
         self.assertAlmostEqual(expected_r, actual_r, delta=10)
@@ -73,8 +68,7 @@ class TestDetectBaseBlob(unittest.TestCase):
         input_voltages_path = './data/Coronene_Cu111/image/Cu111/voltages.csv'
         base_type = {'kind': 'Cu', 'surface': '111'}
         expected_r = 603.2
-        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path,
-                               isfilename=True, isplot=False, manual_r=expected_r)
+        actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, manual_r=expected_r)
         print(base_type)
         print('expected: {}, actual: {}, diff: {}'.format(expected_r, actual_r, abs(expected_r - actual_r)))
         self.assertAlmostEqual(expected_r, actual_r, delta=10)
