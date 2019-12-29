@@ -16,8 +16,8 @@ def set_image(axes, img, title):
     axes.set_title(title)
 
 
-def detect(image_path, isplot=False, output_image=None):
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+def detect(input_image_path, isplot=False, output_image_path=None):
+    img = cv2.imread(input_image_path, cv2.IMREAD_GRAYSCALE)
     img_thresh, center = detect_outer_circle(img)
     img_thresh = cv2.adaptiveThreshold(img_thresh, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                        cv2.THRESH_BINARY, BLOCK_SIZE, 0)
@@ -39,12 +39,13 @@ def detect(image_path, isplot=False, output_image=None):
 
     if isplot:
         fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-        set_image(axes[0, 0], img, image_path.split('/')[-1])
+        set_image(axes[0, 0], img, input_image_path.split('/')[-1])
         set_image(axes[0, 1], img_thresh, 'adaptiveThreshold')
         set_image(axes[1, 0], img_mask, 'morphology')
         set_image(axes[1, 1], cimg, 'detect circles')
-        if output_image:
-            plt.savefig(output_image)
+        if output_image_path:
+            print('save figure as {}'.format(output_image_path))
+            plt.savefig(output_image_path)
         else:
             plt.show()
 

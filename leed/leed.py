@@ -42,7 +42,8 @@ def main():
     subparsers = parser.add_subparsers()
 
     epilog_plot_detected_image = '''
-    ex) plot-detected-image --input-image data/Coronene_Ag111/image/Coronene/L16501.tif --output-image output/images
+    ex) plot-detected-image --input-image-path data/Coronene_Ag111/image/Coronene/L16501.tif
+     --output-image-path output/images/L16501_detected.tif
     '''
     parser_plot_detected_image = subparsers.add_parser(
         'plot-detected-image', help='see `-h`', epilog=epilog_plot_detected_image)
