@@ -31,7 +31,7 @@ def detect(input_image_path, isplot=False, output_image_path=None):
 
     vector = None
     try:
-        cimg, circles = detect_blob(img, img_mask)
+        cimg, circles = detect_blob(img_mask)
         vector = center - circles[:, :2]
     except:
         pass
@@ -70,9 +70,9 @@ def detect_outer_circle(img):
     return img, [x, y]
 
 
-def detect_blob(img, img_mask):
-    cimg = cv2.cvtColor(img_mask, cv2.COLOR_GRAY2RGB)
-    circles = cv2.HoughCircles(img_mask, cv2.HOUGH_GRADIENT, dp=1, minDist=50,
+def detect_blob(img):
+    cimg = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, dp=1, minDist=50,
                                param1=100, param2=6, minRadius=5, maxRadius=20)
 
     circles = np.around(circles[0])
