@@ -181,7 +181,6 @@ def calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, 
         vector = detect(os.path.join(input_images_dir, image_paths[i]))
 
         if vector is not None:
-            print(image_paths[i])
             x_cluster, theta_cluster = clustering(vector, base_type['surface'])
             if i == 0:
                 return 0
