@@ -30,7 +30,7 @@ def plot_scatter(xs, sinthetas, base_type, manual_r, rprime, intercept, output_i
     plt.scatter(sinthetas, xs)
     plt.xlim([0, 0.6])
     plt.ylim([0, 500])
-    plt.xlabel("sin?")
+    plt.xlabel(r"sin${\theta}$")
     plt.ylabel("X'")
 
     plt.title('{}({})'.format(base_type['kind'], base_type['surface']))
@@ -182,8 +182,6 @@ def calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, 
 
         if vector is not None:
             x_cluster, theta_cluster = clustering(vector, base_type['surface'])
-            if i == 0:
-                return 0
 
             if x_cluster is None:
                 continue
@@ -204,7 +202,7 @@ def main(args):
     base_type = {'kind': args.kind, 'surface': args.surface}
     rprime = calc_rprime(args.input_images_dir, base_type, args.input_voltages_path,
                          isplot=args.isplot, output_image_path=args.output_image_path, manual_r=args.manual_r)
-    print("r: {}".format(rprime))
+    print("rprime: {}".format(rprime))
 
 
 if __name__ == "__main__":

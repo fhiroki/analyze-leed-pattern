@@ -17,6 +17,7 @@ def set_image(axes, img, title):
 
 def detect(input_image_path, isplot=False, output_image_path=None):
     img = cv2.imread(input_image_path, cv2.IMREAD_GRAYSCALE)
+    # Detect center point.
     img_thresh, center = detect_outer_circle(img)
     img_thresh = cv2.adaptiveThreshold(img_thresh, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                        cv2.THRESH_BINARY, BLOCK_SIZE, 0)
