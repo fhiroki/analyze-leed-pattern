@@ -5,9 +5,8 @@ from leed.calc_rprime import calc_rprime
 
 class TestCalcRprime(unittest.TestCase):
     '''
-    test case of detector.py
+    test case of calc_rprime.py
     '''
-
     def test_Au110(self):
         ''' Test of 6P/Au(110) '''
         input_images_dir = './data/6P_Au110/image/Au110'

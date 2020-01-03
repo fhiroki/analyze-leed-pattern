@@ -19,7 +19,7 @@ def setup_argument_parser(parser):
     parser.add_argument('--input-voltages-path', help='input image, beam voltage csv file', required=True)
     parser.add_argument('--kind', help='base type', choices=['Au', 'Ag', 'Cu'], required=True)
     parser.add_argument('--surface', help='base surface', choices=['110', '111'], required=True)
-    parser.add_argument('--isplot', help='draw a scatter plot of sinθ and X', action='store_true')
+    parser.add_argument('--isplot', help='draw a scatter plot of sinÎ¸ and X', action='store_true')
     parser.add_argument('--output-image-path', help='output plot image path')
     parser.add_argument('--manual-r', help='calculated r by myself')
 
@@ -49,32 +49,43 @@ def plot_scatter(xs, sinthetas, base_type, manual_r, rprime, intercept, output_i
 
 
 def fit_xs_and_sinthetas(xs, sinthetas):
-    x = sinthetas / np.sqrt(1 - sinthetas ** 2)
-    rprime, intercept = np.polyfit(x, xs, 1)
+    import sys
 
-    # remove outlier
-    outlier = np.abs(rprime*x+intercept - xs) > 50
-    x = np.insert(x[~outlier], 0, 0)
-    xs = np.insert(xs[~outlier], 0, 0)
-    sinthetas = np.insert(sinthetas[~outlier], 0, 0)
-    rprime, intercept = np.polyfit(x, xs, 1)
+    try:
+        x = sinthetas / np.sqrt(1 - sinthetas ** 2)
+        rprime, intercept = np.polyfit(x, xs, 1)
+
+        # remove outlier
+        # outlier = np.abs(rprime*x+intercept - xs) > 30
+        # x = np.insert(x[~outlier], 0, 0)
+        # xs = np.insert(xs[~outlier], 0, 0)
+        # sinthetas = np.insert(sinthetas[~outlier], 0, 0)
+        # rprime, intercept = np.polyfit(x, xs, 1)
+
+    except np.linalg.LinAlgError:
+        sys.exit("r'の値が収束しませんでした。異なるデータセットを用いて再度試してください。")
 
     return rprime, intercept
 
 
-def recalculate_sintheta(xs, sinthetas):
+def recalculate_sintheta(xs, sinthetas, base_type):
     xs = np.array(xs)
     sinthetas = np.array(sinthetas)
 
     min_ratio = np.min(xs[1:] / sinthetas[1:])
     idx_remove = []
 
+    if base_type['kind'] == 'Au' and base_type['surface'] == '110':
+        cands_n = [1, 2, 2 * np.sqrt(2), 3]
+    else:
+        cands_n = [1, np.sqrt(2), np.sqrt(3), 2]
+
     for i in range(1, len(xs)):
         ratio = xs[i] / sinthetas[i]
 
         isfind = False
-        for cand_n in [1, np.sqrt(2), np.sqrt(3), 2]:
-            if min_ratio <= ratio / cand_n < min_ratio + 150:
+        for cand_n in cands_n:
+            if min_ratio <= ratio / cand_n < min_ratio + 160:
                 sinthetas[i] *= cand_n
                 isfind = True
                 break
@@ -82,8 +93,8 @@ def recalculate_sintheta(xs, sinthetas):
         if not isfind:
             idx_remove.append(i)
 
-    np.delete(xs, idx_remove)
-    np.delete(sinthetas, idx_remove)
+    xs = np.delete(xs, idx_remove)
+    sinthetas = np.delete(sinthetas, idx_remove)
 
     return xs, sinthetas
 
@@ -116,6 +127,8 @@ def calc_x_and_sintheta(vector, base_type, voltage):
                     sintheta = np.sqrt(150.4 / voltage) / theoretical_d
                 else:
                     sintheta = np.sqrt(150.4 / voltage) / d[base_type['kind']]
+                    if base_type['kind'] == 'Au':
+                        sintheta /= 2
 
                 xs.append(np.mean([x, other_x]))
                 sinthetas.append(sintheta)
@@ -139,7 +152,7 @@ def calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, 
             xs.extend(xs_i)
             sinthetas.extend(sinthetas_i)
 
-    xs, sinthetas = recalculate_sintheta(xs, sinthetas)
+    xs, sinthetas = recalculate_sintheta(xs, sinthetas, base_type)
     rprime, intercept = fit_xs_and_sinthetas(xs, sinthetas)
 
     if isplot:

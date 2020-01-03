@@ -25,11 +25,8 @@ def detect(input_image_path, isplot=False, output_image_path=None):
         cv2.circle(img_thresh, (center[0], center[1]), 80, 0, -1)
 
     # Morphological operating.
-    kernel_erode = np.ones((8, 8), np.uint8)
-    kernel_dilate = np.ones((10, 10), np.uint8)
-
-    img_morph = cv2.erode(img_thresh, kernel_erode, iterations=1)
-    img_morph = cv2.dilate(img_morph, kernel_dilate, iterations=1)
+    img_morph = cv2.erode(img_thresh, np.ones((8, 8), np.uint8), iterations=1)
+    img_morph = cv2.dilate(img_morph, np.ones((10, 10), np.uint8), iterations=1)
 
     # Remove connected areas.
     cimg = img_morph.copy()
@@ -37,7 +34,7 @@ def detect(input_image_path, isplot=False, output_image_path=None):
     for i, cnt in enumerate(contours):
         area = cv2.contourArea(cnt)
         if area > 1000:
-            cimg = cv2.drawContours(cimg, [cnt], 0, 0, 100)
+            cimg = cv2.drawContours(cimg, [cnt], -1, 0, BLOCK_SIZE - 1)
 
     vector = None
     try:
