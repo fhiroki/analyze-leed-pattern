@@ -1,6 +1,4 @@
 import argparse
-from datetime import datetime
-import itertools
 import os
 import warnings
 
@@ -64,132 +62,84 @@ def fit_xs_and_sinthetas(xs, sinthetas):
     return rprime, intercept
 
 
-def calc_x_and_sintheta(xs, sinthetas, base_type, x_cluster, theta_cluster, voltage):
-    theta_baseline = np.ones(2) * 100
-    a = {'Cu': 3.61496, 'Ag': 4.0862, 'Au': 4.07864}
+def recalculate_sintheta(xs, sinthetas):
+    xs = np.array(xs)
+    sinthetas = np.array(sinthetas)
 
-    if base_type['surface'] == '111':
-        n = 1  # In the case of 111 surfaces, use only n = 1 because place spots on concentric circles.
-        theoretical_d = a[base_type['kind']]*6**0.5/4
-        sintheta = (n / theoretical_d) * np.sqrt(150.4 / voltage)
-        return np.median(x_cluster[0]), sintheta
+    min_ratio = np.min(xs[1:] / sinthetas[1:])
+    idx_remove = []
 
-    elif base_type['surface'] == '110':
-        # In the case of 110 surfaces, the surface arrangement is complicated, so it is considered separately.
+    for i in range(1, len(xs)):
+        ratio = xs[i] / sinthetas[i]
 
-        if base_type['kind'] == 'Au':
-            if theta_baseline[0] == 100:
-                theta_baseline[0] = min(theta_cluster[0])
+        isfind = False
+        for cand_n in [1, np.sqrt(2), np.sqrt(3), 2]:
+            if min_ratio <= ratio / cand_n < min_ratio + 150:
+                sinthetas[i] *= cand_n
+                isfind = True
+                break
 
-            for i in range(len(theta_cluster)):
-                error = np.abs(theta_baseline[0] - min(theta_cluster[i]))
-                if error < 0.1:
-                    x = np.median(x_cluster[i])
-                    lamb = np.sqrt(150.4 / voltage)
-                    n = (x / lamb) // 100 + 1
-                    sintheta = n / (2 * a[base_type['kind']]) * lamb
-                    if n > 2:
-                        continue
+        if not isfind:
+            idx_remove.append(i)
 
-                    return x, sintheta
-        else:
-            if theta_baseline[0] == 100:
-                theta_baseline[0] = min(theta_cluster[0])
-            if len(theta_cluster) > 1:
-                if theta_baseline[1] == 100:
-                    theta_baseline[1] = min(theta_cluster[1])
+    np.delete(xs, idx_remove)
+    np.delete(sinthetas, idx_remove)
 
-            for i in range(len(theta_cluster)):
-                if i > 2:
-                    break
-                for j in range(2):
-                    error = np.abs(theta_baseline[j] - min(theta_cluster[i]))
-                    if error < 0.1:
-                        n = 1 if j == 0 else 2**0.5
-                        sintheta = n * np.sqrt(150.4 / voltage) / a[base_type['kind']]
-                        return np.median(x_cluster[i]), sintheta
+    return xs, sinthetas
 
 
-def clustering_theta(theta_cluster):
-    valid_cluster = np.zeros(len(theta_cluster))
-    pair_theta_cluster = []
+def calc_x_and_sintheta(vector, base_type, voltage):
+    # Polar coordinate transformation
+    points = np.array(cv2.cartToPolar(vector[:, 0], vector[:, 1])).reshape(2, len(vector))
+    # Sort by magnitude
+    points = points[:, points[0, :].argsort()]
+    n_points = points.shape[1]
 
-    for i in range(len(theta_cluster)):
-        for t1, t2 in itertools.combinations(theta_cluster[i], 2):
-            error = np.pi - np.abs(t1 - t2)
-            if np.abs(error) < 0.1:
-                valid_cluster[i] = 1
-                theta_cluster[i] = (t1, t2)
-                pair_theta_cluster.append((t1, t2))
+    xs = []
+    sinthetas = []
+    d = {'Cu': 3.61496, 'Ag': 4.0862, 'Au': 4.07864}
 
-    return theta_cluster, valid_cluster, pair_theta_cluster
+    for i in range(n_points - 1):
+        x, theta = points[:, i]
 
+        for j in range(i + 1, n_points):
+            other_x, other_theta = points[:, j]
 
-def clustering_x(x, theta):
-    freq, bins = np.histogram(x, bins=100, range=(0, 500))
-    bin_freqs = []
-    delta_bin = 10
+            ratio_x = other_x / x
+            diff_theta = abs(np.pi - abs(theta - other_theta))
 
-    for i in range(100):
-        if freq[i]:
-            bin_freqs.append([bins[i], freq[i]])
+            if (ratio_x < 1.2 and diff_theta < 0.15):
 
-    x_cluster = []
-    theta_cluster = []
-    prev_bin = 0
-    start = 0
+                # At this point, it is difficult to find n, so recalculation will be performed later.
+                if base_type['surface'] == '111':
+                    theoretical_d = d[base_type['kind']] * np.sqrt(6) / 4
+                    sintheta = np.sqrt(150.4 / voltage) / theoretical_d
+                else:
+                    sintheta = np.sqrt(150.4 / voltage) / d[base_type['kind']]
 
-    for i in range(len(bin_freqs)):
-        current_bin = bin_freqs[i][0]
-        if current_bin > prev_bin + delta_bin or i == len(bin_freqs) - 1:
-            if i != 0:
-                end = current_bin if i == len(bin_freqs) - 1 else bin_freqs[i - 1][0]
-                x_range = (x >= start) & (x <= end + delta_bin)
-                if len(x[x_range]) > 1:
-                    x_cluster.append(x[x_range])
-                    theta_cluster.append(theta[x_range])
-            start = current_bin
-        prev_bin = current_bin
+                xs.append(np.mean([x, other_x]))
+                sinthetas.append(sintheta)
 
-    return x_cluster, theta_cluster
+                break
 
-
-def clustering(vector, surface):
-    x, theta = cv2.cartToPolar(vector[:, 0], vector[:, 1])
-
-    # To remove outliers, put together x of the roughly same size
-    x_cluster, theta_cluster = clustering_x(x, theta)
-
-    theta_cluster, valid_cluster, pair_theta_cluster = clustering_theta(theta_cluster)
-
-    x_cluster = [x_cluster[i] for i in range(len(x_cluster)) if valid_cluster[i]]
-    if len(x_cluster) == 0:
-        return None, None
-
-    theta_cluster = [theta_cluster[i] for i in range(len(theta_cluster)) if valid_cluster[i]]
-
-    return x_cluster, theta_cluster
+    return xs, sinthetas
 
 
 def calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=False, output_image_path=None, manual_r=None):
     image_paths, voltages = get_images_and_voltages(input_images_dir, input_voltages_path)
 
-    xs = np.array([0])
-    sinthetas = np.array([0])
+    xs = [0]
+    sinthetas = [0]
 
     for i in range(len(image_paths)):
         vector = detect(os.path.join(input_images_dir, image_paths[i]))
 
         if vector is not None:
-            x_cluster, theta_cluster = clustering(vector, base_type['surface'])
+            xs_i, sinthetas_i = calc_x_and_sintheta(vector, base_type, voltages[i])
+            xs.extend(xs_i)
+            sinthetas.extend(sinthetas_i)
 
-            if x_cluster is None:
-                continue
-
-            x, sintheta = calc_x_and_sintheta(xs, sinthetas, base_type, x_cluster, theta_cluster, voltages[i])
-            xs = np.append(xs, x)
-            sinthetas = np.append(sinthetas, sintheta)
-
+    xs, sinthetas = recalculate_sintheta(xs, sinthetas)
     rprime, intercept = fit_xs_and_sinthetas(xs, sinthetas)
 
     if isplot:
