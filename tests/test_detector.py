@@ -14,7 +14,7 @@ class TestCalcRprime(unittest.TestCase):
 
     def execute_calc(self, input_images_dir, base_type, input_voltages_path, expected_r, isplot=False):
         actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=isplot, manual_r=expected_r)
-        diff_ratio = (1 - min(expected_r, actual_r) / max(expected_r, actual_r)) * 100
+        diff_ratio = abs(actual_r / expected_r - 1) * 100
 
         print(base_type)
         print('expected: {}[px], actual: {}[px], diff ratio: {}[%]'.format(expected_r, actual_r, diff_ratio))
