@@ -61,9 +61,7 @@ def detect(input_image_path, isplot=False, output_image_path=None):
 
 
 def detect_outer_circle(img):
-    ret, img_thresh = cv2.threshold(img, 50, 50, cv2.THRESH_TOZERO)
-    img_thresh = cv2.medianBlur(img_thresh, 9)
-    img_thresh = cv2.adaptiveThreshold(img_thresh, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 101, 0)
+    img_thresh = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 101, 0)
     img_thresh = cv2.medianBlur(img_thresh, 15)
     outer_circle = cv2.HoughCircles(img_thresh, cv2.HOUGH_GRADIENT, dp=1, minDist=70,
                                     param1=140, param2=10, minRadius=440, maxRadius=460)
@@ -73,7 +71,6 @@ def detect_outer_circle(img):
         x, y, r = np.around(outer_circle[0][0])
         mask = np.ones(img.shape) * 255
         cv2.circle(mask, (x, y), r, 0, -1)
-        # cv2.circle(img, (x, y), 10, (255, 0, 0), -1)  # draw center of circle
         img = np.where(mask == 255, 255, img)
 
     return img, [x, y]
@@ -81,8 +78,8 @@ def detect_outer_circle(img):
 
 def detect_blob(img):
     cimg = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, dp=1, minDist=50,
-                               param1=100, param2=3, minRadius=5, maxRadius=20)
+    circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, dp=1, minDist=30,
+                               param1=140, param2=4, minRadius=3, maxRadius=25)
 
     circles = np.around(circles[0])
     for i in circles:
