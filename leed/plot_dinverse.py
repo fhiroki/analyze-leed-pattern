@@ -91,7 +91,7 @@ def plot_dinverse(input_images_dir, input_voltages_path, rprime, output_image_pa
     d_invs = d_invs.flatten()
     thetas = thetas.flatten()
 
-    plt.polar(thetas, d_invs, 'o')
+    plt.polar(thetas, d_invs, 'o', markersize=3)
     if output_image_path:
         plt.savefig(output_image_path)
     else:
