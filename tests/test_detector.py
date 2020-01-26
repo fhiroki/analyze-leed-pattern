@@ -10,7 +10,7 @@ class TestCalcRprime(unittest.TestCase):
     '''
     def setUp(self):
         warnings.filterwarnings('ignore')
-        self.error = 1.0  # allow less than 3.0% error
+        self.error = 1.0  # allow less than 1.0% error
 
     def execute_calc(self, input_images_dir, base_type, input_voltages_path, expected_r, isplot=False):
         actual_r = calc_rprime(input_images_dir, base_type, input_voltages_path, isplot=isplot, manual_r=expected_r)

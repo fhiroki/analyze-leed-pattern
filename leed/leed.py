@@ -15,8 +15,8 @@ mydir = os.path.dirname(__file__)
 sys.path.insert(0, mydir)
 
 
-def register_plot_detected_spot(parser):
-    from leed.plot_detected_spot import setup_argument_parser, main
+def register_detect_spot(parser):
+    from leed.detect_spot import setup_argument_parser, main
 
     def command(args):
         main(args)
@@ -51,13 +51,13 @@ def main():
     parser.add_argument('--version', action='version', version='%(prog)s ' + version)
     subparsers = parser.add_subparsers()
 
-    epilog_plot_detected_spot = '''
-    ex) plot-detected-spot --input-image-path images/L16501.tif
+    epilog_detect_spot = '''
+    ex) detect-spot --input-image-path images/L16501.tif
         --output-image-path output/images/L16501_detected.tif
     '''
-    parser_plot_detected_spot = subparsers.add_parser(
-        'plot-detected-spot', help='see `-h`', epilog=epilog_plot_detected_spot)
-    register_plot_detected_spot(parser_plot_detected_spot)
+    parser_detect_spot = subparsers.add_parser(
+        'detect-spot', help='see `-h`', epilog=epilog_detect_spot)
+    register_detect_spot(parser_detect_spot)
 
     epilog_calc_rprime = '''
     ex) calc-rprime --kind Ag --surface 111 --input-images-dir image/Ag111/
