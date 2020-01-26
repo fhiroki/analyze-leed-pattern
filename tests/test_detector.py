@@ -1,12 +1,12 @@
 import unittest
 import warnings
 
-from leed.calc_rprime import calc_rprime
+from leed.calc_distortion import calc_rprime
 
 
-class TestCalcRprime(unittest.TestCase):
+class TestCalcDistortion(unittest.TestCase):
     '''
-    test case of calc_rprime.py
+    test case of calc_distortion.py
     '''
     def setUp(self):
         warnings.filterwarnings('ignore')

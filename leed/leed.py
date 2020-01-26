@@ -15,8 +15,8 @@ mydir = os.path.dirname(__file__)
 sys.path.insert(0, mydir)
 
 
-def register_detect_spot(parser):
-    from leed.detect_spot import setup_argument_parser, main
+def register_detect_spots(parser):
+    from leed.detect_spots import setup_argument_parser, main
 
     def command(args):
         main(args)
@@ -25,8 +25,8 @@ def register_detect_spot(parser):
     parser.set_defaults(handler=command)
 
 
-def register_calc_rprime(parser):
-    from leed.calc_rprime import setup_argument_parser, main
+def register_calc_distortion(parser):
+    from leed.calc_distortion import setup_argument_parser, main
 
     def command(args):
         main(args)
@@ -35,8 +35,8 @@ def register_calc_rprime(parser):
     parser.set_defaults(handler=command)
 
 
-def register_plot_dinverse(parser):
-    from leed.plot_dinverse import setup_argument_parser, main
+def register_plot_spots(parser):
+    from leed.plot_spots import setup_argument_parser, main
 
     def command(args):
         main(args)
@@ -51,27 +51,27 @@ def main():
     parser.add_argument('--version', action='version', version='%(prog)s ' + version)
     subparsers = parser.add_subparsers()
 
-    epilog_detect_spot = '''
-    ex) detect-spot --input-image-path images/L16501.tif
+    epilog_detect_spots = '''
+    ex) detect-spots --input-image-path images/L16501.tif
         --output-image-path output/images/L16501_detected.tif
     '''
-    parser_detect_spot = subparsers.add_parser(
-        'detect-spot', help='see `-h`', epilog=epilog_detect_spot)
-    register_detect_spot(parser_detect_spot)
+    parser_detect_spots = subparsers.add_parser(
+        'detect-spots', help='see `-h`', epilog=epilog_detect_spots)
+    register_detect_spots(parser_detect_spots)
 
-    epilog_calc_rprime = '''
-    ex) calc-rprime --kind Ag --surface 111 --input-images-dir image/Ag111/
-        --input-voltages-path voltages.csv --isplot --output-image_path output/rprime.png
+    epilog_calc_distortion = '''
+    ex) calc-distortion --kind Ag --surface 111 --input-images-dir image/Ag111/
+        --input-voltages-path voltages.csv --isplot --output-image_path output/distortion.png
     '''
-    parser_calc_rprime = subparsers.add_parser('calc-rprime', help='see `-h`', epilog=epilog_calc_rprime)
-    register_calc_rprime(parser_calc_rprime)
+    parser_calc_distortion = subparsers.add_parser('calc-distortion', help='see `-h`', epilog=epilog_calc_distortion)
+    register_calc_distortion(parser_calc_distortion)
 
-    epilog_plot_dinverse = '''
-    ex) plot-dinverse --input-images-dir images/Coronene/
-        --input-voltages-path voltages.csv --output-image-path output/dinverse.png
+    epilog_plot_spots = '''
+    ex) plot-spots --input-images-dir images/Coronene/
+        --input-voltages-path voltages.csv --output-image-path output/spots.png
     '''
-    parser_plot_dinvese = subparsers.add_parser('plot-dinverse', help='see `-h`', epilog=epilog_plot_dinverse)
-    register_plot_dinverse(parser_plot_dinvese)
+    parser_plot_dinvese = subparsers.add_parser('plot-spots', help='see `-h`', epilog=epilog_plot_spots)
+    register_plot_spots(parser_plot_dinvese)
 
     # to parse command line arguments, and execute processing
     args = parser.parse_args()
