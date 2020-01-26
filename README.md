@@ -30,9 +30,9 @@ optional arguments:
   --version             show program's version number and exit
 ```
 
-### plot-detected-spot
+### detect-spot
 ```
-usage: leed plot-detected-spot [-h] --input-image-path INPUT_IMAGE_PATH [--output-image-path OUTPUT_IMAGE_PATH]
+usage: leed detect-spot [-h] --input-image-path INPUT_IMAGE_PATH [--output-image-path OUTPUT_IMAGE_PATH]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -41,7 +41,7 @@ optional arguments:
   --output-image-path OUTPUT_IMAGE_PATH
                         output image path
 
-ex) plot-detected-spot --input-image-path images/L16501.tif --output-image-path output/images/L16501_detected.tif
+ex) detect-spot --input-image-path images/L16501.tif --output-image-path output/images/L16501_detected.tif
 ```
 
 ### calc-rprime
